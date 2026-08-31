@@ -1,0 +1,47 @@
+{
+  "name": "kaprichos",
+  "version": "1.0.0",
+  "description": "E-commerce Kaprichos — Next.js + Payload CMS 3.x + Mercado Pago",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "lint": "cross-env NODE_OPTIONS=--no-deprecation next lint",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "^3.54.0",
+    "@payloadcms/next": "^3.54.0",
+    "@payloadcms/plugin-cloud-storage": "^3.54.0",
+    "@payloadcms/richtext-lexical": "^3.54.0",
+    "@payloadcms/ui": "^3.54.0",
+    "cloudinary": "^2.7.0",
+    "cross-env": "^7.0.3",
+    "graphql": "^16.11.0",
+    "mercadopago": "^2.9.0",
+    "next": "^15.4.11",
+    "payload": "^3.54.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sharp": "^0.34.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "^15.4.11",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
