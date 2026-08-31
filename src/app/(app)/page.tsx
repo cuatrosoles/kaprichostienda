@@ -4,8 +4,14 @@ import config from '@payload-config'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
+type CatalogProduct = {
+  id: number | string
+  title: string
+  price: number
+}
+
 export default async function HomePage() {
-  let products: Array<{ id: number | string; title: string; price: number }> = []
+  let products: CatalogProduct[] = []
 
   try {
     const payload = await getPayload({ config })
@@ -16,7 +22,17 @@ export default async function HomePage() {
       },
       limit: 24,
     })
-    products = result.docs
+
+    products = result.docs.map((doc) => {
+      const title = 'title' in doc ? doc.title : ''
+      const price = 'price' in doc ? doc.price : 0
+
+      return {
+        id: doc.id,
+        title: typeof title === 'string' ? title : '',
+        price: typeof price === 'number' ? price : Number(price) || 0,
+      }
+    })
   } catch (error) {
     console.error('No se pudieron cargar los productos:', error)
   }
@@ -32,7 +48,7 @@ export default async function HomePage() {
             <article key={product.id} className="rounded-lg border bg-white p-4 shadow-sm">
               <h2 className="text-lg font-semibold">{product.title}</h2>
               <p className="mt-2 text-gray-700">
-                ${Number(product.price).toLocaleString('es-AR')}
+                ${product.price.toLocaleString('es-AR')}
               </p>
             </article>
           ))}
