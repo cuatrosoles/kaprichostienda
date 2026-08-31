@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const deliveryOptions = [
       {
         id: 'standard_home',
-        name: 'Envío Estándar a Domicilio',
+        name: 'Correo Argentino — Envío a domicilio',
         cost: finalShippingCost,
         eta: '3 a 6 días hábiles',
       },
@@ -32,6 +32,12 @@ export async function POST(req: Request) {
         name: 'Envío Express prioritario',
         cost: Math.round(finalShippingCost * 1.45),
         eta: '24 a 48 horas hábiles',
+      },
+      {
+        id: 'pickup',
+        name: 'Retiro en punto de correo',
+        cost: Math.round(finalShippingCost * 0.75),
+        eta: '4 a 7 días hábiles',
       },
     ]
 

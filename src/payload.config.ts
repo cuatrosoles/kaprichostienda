@@ -10,7 +10,17 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Products } from './collections/Products'
 import { Orders } from './collections/Orders'
-import { cloudinaryAdapter } from './storage/cloudinaryAdapter'
+import { Categories } from './collections/Categories'
+import { Coupons } from './collections/Coupons'
+import { Customers } from './collections/Customers'
+import { StoreSettings } from './globals/StoreSettings'
+import { storeEmailAdapter } from './email/storeEmailAdapter'
+import {
+  cloudinaryAdapter,
+  cloudinaryFileUrl,
+  getCloudinaryEnv,
+  isCloudinaryConfigured,
+} from './storage/cloudinaryAdapter'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -24,11 +34,7 @@ function getDatabaseUri() {
     : `${uri}?sslmode=require&uselibpqcompat=true`
 }
 
-const cloudinaryEnabled = Boolean(
-  process.env.CLOUDINARY_CLOUD_NAME &&
-    process.env.CLOUDINARY_API_KEY &&
-    process.env.CLOUDINARY_API_SECRET,
-)
+const { folder: cloudinaryFolder } = getCloudinaryEnv()
 
 export default buildConfig({
   admin: {
@@ -41,9 +47,12 @@ export default buildConfig({
       titleSuffix: ' | Kaprichos CMS',
     },
   },
-  collections: [Users, Media, Products, Orders],
+  collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],
+  globals: [StoreSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
+  // Payload llama `email({ payload })` en runtime; el tipo público espera el adapter ya resuelto.
+  email: storeEmailAdapter as never,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -55,19 +64,20 @@ export default buildConfig({
         rejectUnauthorized: false,
       },
     },
-    // Crea/actualiza tablas al arrancar. Desactivar con PAYLOAD_DISABLE_PUSH=true cuando uses migraciones.
     push: process.env.PAYLOAD_DISABLE_PUSH !== 'true',
   }),
   sharp,
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
   plugins: [
     cloudStoragePlugin({
-      enabled: cloudinaryEnabled,
+      enabled: isCloudinaryConfigured(),
       collections: {
         media: {
           adapter: cloudinaryAdapter,
+          prefix: cloudinaryFolder,
           disableLocalStorage: true,
           disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) => cloudinaryFileUrl(filename, prefix),
         },
       },
     }),

@@ -6,6 +6,8 @@ export const Media: CollectionConfig = {
     read: () => true,
   },
   upload: {
+    // Nunca persistir archivos en el filesystem de Vercel (plan Hobby).
+    disableLocalStorage: true,
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
       { name: 'card', width: 768, height: 1024, position: 'centre' },

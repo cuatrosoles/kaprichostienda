@@ -1,36 +1,53 @@
 'use client'
 
-import React, { useState } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
+import { useCart } from '@/context/CartContext'
+import { useAuth } from '@/context/AuthContext'
+import {
+  CASH_DISCOUNT,
+  type CatalogCoupon,
+  formatARS,
+  POINT_VALUE_ARS,
+  POINTS_PER_THOUSAND,
+} from '@/data/catalog'
 
-type CartItem = {
-  id: string
-  title: string
-  price: number
-  quantity: number
-  weight?: number
-}
+type ShippingOption = { id: string; name: string; cost: number; eta: string }
 
-type ShippingOption = {
-  id: string
-  name: string
-  cost: number
-  eta: string
-}
-
-export default function CarritoView({ cartItemsData }: { cartItemsData: CartItem[] }) {
-  const [cart] = useState<CartItem[]>(cartItemsData)
+export default function CarritoView() {
+  const { items, subtotal, updateQty, removeItem, clear } = useCart()
+  const { user } = useAuth()
   const [zipCode, setZipCode] = useState('')
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([])
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null)
   const [loadingShipping, setLoadingShipping] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [coupon, setCoupon] = useState<CatalogCoupon | null>(null)
+  const [couponError, setCouponError] = useState('')
+  const [payMethod, setPayMethod] = useState<'mp' | 'transfer'>('mp')
+  const [loyaltyPoints, setLoyaltyPoints] = useState(0)
+  const [availablePoints, setAvailablePoints] = useState(0)
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
+  const [status, setStatus] = useState<string | null>(null)
 
   const [customer, setCustomer] = useState({ name: '', email: '', phone: '' })
   const [address, setAddress] = useState({ street: '', floorAppart: '', city: '', province: '' })
 
-  const productsTotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0)
-  const totalWeight = cart.reduce((acc, item) => acc + (item.weight || 500) * item.quantity, 0)
-  const grandTotal = productsTotal + (selectedShipping ? selectedShipping.cost : 0)
+  useEffect(() => {
+    if (!user) return
+    setCustomer({ name: user.name, email: user.email, phone: user.phone })
+    setAvailablePoints(user.loyaltyPoints)
+  }, [user])
+
+  const totalWeight = items.reduce((acc, item) => acc + item.weight * item.quantity, 0)
+  const discountedSubtotal =
+    payMethod === 'transfer' ? Math.round(subtotal * (1 - CASH_DISCOUNT)) : subtotal
+  const couponDiscount =
+    coupon?.type === 'percent' ? Math.round(discountedSubtotal * (coupon.value / 100)) : 0
+  const afterCoupon = discountedSubtotal - couponDiscount
+  const pointsValue = Math.min(loyaltyPoints, availablePoints) * POINT_VALUE_ARS
+  const shippingCost =
+    coupon?.type === 'shipping' ? 0 : selectedShipping ? selectedShipping.cost : 0
+  const grandTotal = Math.max(0, afterCoupon - pointsValue + shippingCost)
 
   const handleCalculateShipping = async () => {
     if (!zipCode) return
@@ -46,213 +63,283 @@ export default function CarritoView({ cartItemsData }: { cartItemsData: CartItem
         setShippingOptions(data.options)
         setSelectedShipping(data.options[0])
       }
-    } catch (err) {
-      console.error(err)
     } finally {
       setLoadingShipping(false)
     }
   }
 
-  const handleCheckout = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedShipping) return alert('Por favor calcula y selecciona una opción de envío')
+  const applyCoupon = async () => {
+    setCouponError('')
+    const res = await fetch('/api/coupons', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: couponCode }),
+    })
+    const data = await res.json()
+    if (!data.coupon) {
+      setCoupon(null)
+      setCouponError(data.error || 'Cupón inválido')
+      return
+    }
+    setCoupon(data.coupon)
+  }
 
+  const loadPoints = async () => {
+    if (!customer.email) return
+    const res = await fetch(`/api/loyalty?email=${encodeURIComponent(customer.email)}`)
+    const data = await res.json()
+    setAvailablePoints(Number(data.points || 0))
+  }
+
+  const handleCheckout = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!selectedShipping && coupon?.type !== 'shipping') {
+      return alert('Calculá y seleccioná una opción de envío')
+    }
     setIsProcessingCheckout(true)
     try {
-      const checkoutPayload = {
-        items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
-        customer,
-        shippingAddress: { ...address, zipCode },
-        shippingCost: selectedShipping.cost,
-      }
-
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(checkoutPayload),
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: item.productId,
+            variantSku: item.sku,
+            quantity: item.quantity,
+            size: item.size,
+            color: item.color,
+          })),
+          customer,
+          shippingAddress: { ...address, zipCode },
+          shippingCost,
+          couponCode: coupon?.code,
+          loyaltyPoints: Math.min(loyaltyPoints, availablePoints),
+          payMethod,
+        }),
       })
-
       const data = await res.json()
       if (data.init_point) {
+        clear()
         window.location.href = data.init_point
-      } else {
-        throw new Error(data.error || 'Fallo de procesamiento')
+        return
       }
+      if (data.ok) {
+        clear()
+        setStatus('Pedido registrado. Te enviamos los datos de transferencia.')
+        return
+      }
+      throw new Error(data.error || 'Fallo de procesamiento')
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido'
-      alert(`Error en Checkout: ${message}`)
+      alert(err instanceof Error ? err.message : 'Error')
+    } finally {
       setIsProcessingCheckout(false)
     }
   }
 
+  const empty = items.length === 0
+
   return (
-    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 p-4 font-sans md:grid-cols-2">
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">Tu Carrito de Compras</h2>
-        <div className="divide-y rounded-lg border bg-white p-4 shadow-sm">
-          {cart.length === 0 ? (
-            <p className="py-3 text-sm text-gray-500">Tu carrito está vacío.</p>
+    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 md:grid-cols-2">
+      <div>
+        <h1 className="font-display text-4xl">Tu carrito</h1>
+        {status && <p className="mt-4 bg-kap-green px-4 py-3 text-sm text-white">{status}</p>}
+        <div className="mt-6 divide-y border">
+          {empty ? (
+            <p className="p-4 text-sm text-neutral-500">Tu carrito está vacío.</p>
           ) : (
-            cart.map((item) => (
-              <div key={item.id} className="flex items-center justify-between py-3">
-                <div>
-                  <h4 className="font-semibold text-gray-800">{item.title}</h4>
-                  <p className="text-sm text-gray-500">
-                    Cantidad: {item.quantity} x ${item.price.toLocaleString('es-AR')}
+            items.map((item) => (
+              <div key={item.sku} className="flex gap-3 p-4">
+                <img src={item.image} alt="" className="h-24 w-16 object-cover" />
+                <div className="flex-1">
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-xs text-neutral-500">
+                    {item.color} / {item.size}
                   </p>
+                  <p className="text-sm">{formatARS(item.price)}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <button type="button" onClick={() => updateQty(item.sku, item.quantity - 1)}>
+                      −
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button type="button" onClick={() => updateQty(item.sku, item.quantity + 1)}>
+                      +
+                    </button>
+                    <button type="button" className="ml-4 text-xs underline" onClick={() => removeItem(item.sku)}>
+                      Quitar
+                    </button>
+                  </div>
                 </div>
-                <span className="font-medium text-gray-900">
-                  ${(item.price * item.quantity).toLocaleString('es-AR')}
-                </span>
               </div>
             ))
           )}
         </div>
 
-        <div className="space-y-3 rounded-lg border bg-gray-50 p-4">
-          <h3 className="text-lg font-bold text-gray-800">Calcular Envío (Argentina)</h3>
+        <div className="mt-8 space-y-3 border p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-widest">Envío nacional</h3>
           <div className="flex gap-2">
             <input
-              type="text"
-              placeholder="Código Postal (ej: 1425)"
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
-              className="flex-1 rounded border px-3 py-2 text-sm text-black outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Código postal"
+              className="store-input"
             />
-            <button
-              type="button"
-              onClick={handleCalculateShipping}
-              disabled={loadingShipping}
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:bg-gray-400"
-            >
-              {loadingShipping ? 'Calculando...' : 'Calcular'}
+            <button type="button" onClick={handleCalculateShipping} className="store-btn-outline whitespace-nowrap">
+              {loadingShipping ? '...' : 'Calcular'}
             </button>
           </div>
-
-          {shippingOptions.length > 0 && (
-            <div className="mt-3 space-y-2">
-              {shippingOptions.map((opt) => (
-                <label
-                  key={opt.id}
-                  className="flex cursor-pointer items-center justify-between rounded border bg-white p-2 text-black hover:bg-gray-50"
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="shipping"
-                      checked={selectedShipping?.id === opt.id}
-                      onChange={() => setSelectedShipping(opt)}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div>
-                      <p className="text-sm font-semibold text-gray-800">{opt.name}</p>
-                      <p className="text-xs text-gray-500">Plazo: {opt.eta}</p>
-                    </div>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">
-                    ${opt.cost.toLocaleString('es-AR')}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
+          {shippingOptions.map((opt) => (
+            <label key={opt.id} className="flex items-center justify-between border p-2 text-sm">
+              <span>
+                <input
+                  type="radio"
+                  className="mr-2"
+                  checked={selectedShipping?.id === opt.id}
+                  onChange={() => setSelectedShipping(opt)}
+                />
+                {opt.name} · {opt.eta}
+              </span>
+              <span>{coupon?.type === 'shipping' ? 'Gratis' : formatARS(opt.cost)}</span>
+            </label>
+          ))}
         </div>
       </div>
 
-      <form onSubmit={handleCheckout} className="space-y-6 rounded-lg border bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-          Datos de Facturación y Entrega
-        </h2>
-
-        <div className="space-y-3">
+      <form onSubmit={handleCheckout} className="space-y-4 border p-6">
+        <h2 className="font-display text-3xl">Datos y pago</h2>
+        <input
+          required
+          placeholder="Nombre y apellido"
+          value={customer.name}
+          onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
+          className="store-input"
+        />
+        <input
+          required
+          type="email"
+          placeholder="Email"
+          value={customer.email}
+          onBlur={loadPoints}
+          onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
+          className="store-input"
+        />
+        <input
+          required
+          placeholder="Teléfono"
+          value={customer.phone}
+          onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
+          className="store-input"
+        />
+        <input
+          required
+          placeholder="Calle y número"
+          value={address.street}
+          onChange={(e) => setAddress({ ...address, street: e.target.value })}
+          className="store-input"
+        />
+        <input
+          placeholder="Piso / depto"
+          value={address.floorAppart}
+          onChange={(e) => setAddress({ ...address, floorAppart: e.target.value })}
+          className="store-input"
+        />
+        <div className="grid grid-cols-2 gap-2">
           <input
             required
-            type="text"
-            placeholder="Nombre y Apellido completo"
-            value={customer.name}
-            onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm text-black"
+            placeholder="Ciudad"
+            value={address.city}
+            onChange={(e) => setAddress({ ...address, city: e.target.value })}
+            className="store-input"
           />
           <input
             required
-            type="email"
-            placeholder="Correo Electrónico"
-            value={customer.email}
-            onChange={(e) => setCustomer({ ...customer, email: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm text-black"
-          />
-          <input
-            required
-            type="tel"
-            placeholder="Teléfono celular (con código de área)"
-            value={customer.phone}
-            onChange={(e) => setCustomer({ ...customer, phone: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm text-black"
+            placeholder="Provincia"
+            value={address.province}
+            onChange={(e) => setAddress({ ...address, province: e.target.value })}
+            className="store-input"
           />
         </div>
 
-        <div className="space-y-3 pt-2">
-          <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700">
-            Dirección Física
-          </h4>
+        <div className="flex gap-2">
           <input
-            required
-            type="text"
-            placeholder="Calle, Número, Localidad"
-            value={address.street}
-            onChange={(e) => setAddress({ ...address, street: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm text-black"
+            value={couponCode}
+            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+            placeholder="Cupón"
+            className="store-input"
           />
-          <input
-            type="text"
-            placeholder="Piso / Depto / Oficina (Opcional)"
-            value={address.floorAppart}
-            onChange={(e) => setAddress({ ...address, floorAppart: e.target.value })}
-            className="w-full rounded border px-3 py-2 text-sm text-black"
-          />
-          <div className="grid grid-cols-2 gap-2">
+          <button type="button" onClick={applyCoupon} className="store-btn-outline">
+            Aplicar
+          </button>
+        </div>
+        {couponError && <p className="text-xs text-red-600">{couponError}</p>}
+        {coupon && <p className="text-xs text-kap-green">Aplicado: {coupon.label}</p>}
+
+        {availablePoints > 0 && (
+          <label className="block text-xs">
+            Puntos Club ({availablePoints} disponibles)
             <input
-              required
-              type="text"
-              placeholder="Ciudad"
-              value={address.city}
-              onChange={(e) => setAddress({ ...address, city: e.target.value })}
-              className="w-full rounded border px-3 py-2 text-sm text-black"
+              type="number"
+              min={0}
+              max={availablePoints}
+              value={loyaltyPoints}
+              onChange={(e) => setLoyaltyPoints(Number(e.target.value))}
+              className="store-input mt-1"
             />
-            <input
-              required
-              type="text"
-              placeholder="Provincia"
-              value={address.province}
-              onChange={(e) => setAddress({ ...address, province: e.target.value })}
-              className="w-full rounded border px-3 py-2 text-sm text-black"
-            />
-          </div>
+          </label>
+        )}
+
+        <div className="space-y-2 text-sm">
+          <label className="flex gap-2">
+            <input type="radio" checked={payMethod === 'mp'} onChange={() => setPayMethod('mp')} />
+            Mercado Pago · 3 cuotas sin interés
+          </label>
+          <label className="flex gap-2">
+            <input type="radio" checked={payMethod === 'transfer'} onChange={() => setPayMethod('transfer')} />
+            Transferencia / efectivo · 20% OFF
+          </label>
         </div>
 
-        <div className="space-y-2 border-t pt-4">
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Subtotal Productos:</span>
-            <span>${productsTotal.toLocaleString('es-AR')}</span>
+        <div className="space-y-1 border-t pt-4 text-sm">
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+            <span>{formatARS(subtotal)}</span>
           </div>
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>Costo de Envío:</span>
-            <span>
-              {selectedShipping ? `$${selectedShipping.cost.toLocaleString('es-AR')}` : 'A calcular'}
-            </span>
+          {payMethod === 'transfer' && (
+            <div className="flex justify-between text-red-600">
+              <span>20% OFF</span>
+              <span>-{formatARS(subtotal - discountedSubtotal)}</span>
+            </div>
+          )}
+          {couponDiscount > 0 && (
+            <div className="flex justify-between">
+              <span>Cupón</span>
+              <span>-{formatARS(couponDiscount)}</span>
+            </div>
+          )}
+          {pointsValue > 0 && (
+            <div className="flex justify-between">
+              <span>Puntos</span>
+              <span>-{formatARS(pointsValue)}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span>Envío</span>
+            <span>{selectedShipping || coupon?.type === 'shipping' ? formatARS(shippingCost) : 'A calcular'}</span>
           </div>
-          <div className="flex justify-between border-t pt-2 text-lg font-bold text-gray-900">
-            <span>Total General:</span>
-            <span>${grandTotal.toLocaleString('es-AR')}</span>
+          <div className="flex justify-between border-t pt-2 text-base font-semibold">
+            <span>Total</span>
+            <span>{formatARS(grandTotal)}</span>
           </div>
+          <p className="text-[11px] text-neutral-500">
+            Sumás {Math.floor(grandTotal / 1000) * POINTS_PER_THOUSAND} puntos al aprobarse el pago.
+          </p>
         </div>
 
-        <button
-          type="submit"
-          disabled={isProcessingCheckout || cart.length === 0}
-          className="w-full rounded-lg bg-emerald-600 py-3 text-base font-bold text-white shadow hover:bg-emerald-700 transition disabled:bg-gray-400"
-        >
-          {isProcessingCheckout ? 'Procesando Transacción...' : 'Pagar con Mercado Pago'}
+        <button type="submit" disabled={isProcessingCheckout || empty} className="store-btn">
+          {isProcessingCheckout
+            ? 'Procesando...'
+            : payMethod === 'mp'
+              ? 'Pagar con Mercado Pago'
+              : 'Confirmar pedido'}
         </button>
       </form>
     </div>

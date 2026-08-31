@@ -1,30 +1,41 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import React from 'react'
+import StoreShell from '@/components/store/StoreShell'
+import { getStoreCategories } from '@/lib/storefront'
+import { getPublicAuthConfig, getStoreCustomer, getStoreSettings } from '@/lib/auth'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Kaprichos',
-  description: 'Tienda online Kaprichos',
+  title: 'Kaprichos Tienda',
+  description: 'Indumentaria Kaprichos. Envíos a todo el país. 3 cuotas sin interés.',
 }
 
 export const dynamic = 'force-dynamic'
 
-export default function StoreLayout({ children }: { children: React.ReactNode }) {
+const fallbackAuth = {
+  loginEnabled: true,
+  registrationEnabled: true,
+  requireEmailVerification: false,
+  minPasswordLength: 8,
+  captchaEnabled: false,
+  captchaProvider: 'turnstile' as const,
+  captchaSiteKey: '',
+}
+
+export default async function StoreLayout({ children }: { children: React.ReactNode }) {
+  const [categories, user, settings] = await Promise.all([
+    getStoreCategories(),
+    getStoreCustomer(),
+    getStoreSettings().catch(() => null),
+  ])
+  const authConfig = settings ? getPublicAuthConfig(settings) : fallbackAuth
+
   return (
     <html lang="es">
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
-        <header className="border-b bg-white">
-          <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <Link href="/" className="text-xl font-bold tracking-tight">
-              Kaprichos
-            </Link>
-            <Link href="/carrito" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
-              Carrito
-            </Link>
-          </nav>
-        </header>
-        {children}
+      <body className="font-sans antialiased">
+        <StoreShell categories={categories} user={user} authConfig={authConfig}>
+          {children}
+        </StoreShell>
       </body>
     </html>
   )

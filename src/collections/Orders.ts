@@ -8,7 +8,14 @@ export const Orders: CollectionConfig = {
   },
   access: {
     create: () => true,
-    read: ({ req: { user } }) => Boolean(user),
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.collection === 'users') return true
+      if (user.collection === 'customers') {
+        return { customerEmail: { equals: user.email } }
+      }
+      return false
+    },
   },
   fields: [
     {
@@ -43,12 +50,18 @@ export const Orders: CollectionConfig = {
       type: 'array',
       label: 'Productos Comprados',
       fields: [
-        { name: 'product', type: 'relationship', relationTo: 'products', required: true },
+        { name: 'product', type: 'relationship', relationTo: 'products' },
         { name: 'quantity', type: 'number', required: true },
         { name: 'priceAtPurchase', type: 'number', required: true, label: 'Precio Unitario Congelado' },
+        { name: 'variantSku', type: 'text', label: 'SKU variante' },
+        { name: 'size', type: 'text', label: 'Talle' },
+        { name: 'color', type: 'text', label: 'Color' },
       ],
     },
     { name: 'shippingCost', type: 'number', required: true, label: 'Costo de Envío Abonado' },
+    { name: 'discount', type: 'number', defaultValue: 0, label: 'Descuento cupón / puntos' },
+    { name: 'couponCode', type: 'text', label: 'Cupón aplicado' },
+    { name: 'loyaltyPointsUsed', type: 'number', defaultValue: 0 },
     { name: 'total', type: 'number', required: true, label: 'Total General de la Orden' },
     { name: 'mpPreferenceId', type: 'text', label: 'ID Preferencia Mercado Pago', admin: { position: 'sidebar' } },
     { name: 'mpPaymentId', type: 'text', label: 'ID Transacción Mercado Pago', admin: { position: 'sidebar' } },

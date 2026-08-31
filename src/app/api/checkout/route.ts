@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { CASH_DISCOUNT, POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
+import { findStoreProductDoc, getStoreCoupon, mapProduct } from '@/lib/storefront'
+import { randomPassword } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -13,61 +16,157 @@ const client = new MercadoPagoConfig({
 
 type CheckoutItem = {
   productId: string
+  variantSku?: string
   quantity: number
+  size?: string
+  color?: string
 }
 
 export async function POST(req: Request) {
   try {
-    const { items, customer, shippingAddress, shippingCost } = await req.json()
-    const payload = await getPayload({ config })
+    const {
+      items,
+      customer,
+      shippingAddress,
+      shippingCost,
+      couponCode,
+      loyaltyPoints = 0,
+      payMethod = 'mp',
+    } = await req.json()
 
-    const validatedItems = await Promise.all(
-      (items as CheckoutItem[]).map(async (item) => {
-        const prod = await payload.findByID({ collection: 'products', id: item.productId })
-        if (!prod || prod.stock < item.quantity) {
-          throw new Error(`Stock insuficiente para ${prod?.title ?? item.productId}`)
-        }
-        return {
-          id: String(prod.id),
-          title: prod.title,
-          quantity: item.quantity,
-          unit_price: prod.price,
-          currency_id: 'ARS' as const,
-        }
-      }),
-    )
+    const validatedItems = []
+    for (const item of items as CheckoutItem[]) {
+      const doc = await findStoreProductDoc(item.productId)
+      if (!doc || doc.status !== 'published') throw new Error('Producto no encontrado')
+      const prod = mapProduct(doc)
+      const variant = item.variantSku
+        ? prod.variants.find((v) => v.sku === item.variantSku)
+        : prod.variants[0]
+      if (!variant || variant.stock < item.quantity) {
+        throw new Error(`Stock insuficiente para ${prod.title}`)
+      }
+      validatedItems.push({
+        id: prod.id,
+        title: `${prod.title} (${variant.color} / ${variant.size})`,
+        quantity: item.quantity,
+        unit_price: prod.price,
+        currency_id: 'ARS' as const,
+        variant,
+        product: prod,
+        size: variant.size,
+        color: variant.color,
+      })
+    }
 
     const productsTotal = validatedItems.reduce(
       (acc, curr) => acc + curr.unit_price * curr.quantity,
       0,
     )
-    const totalOrderAmount = productsTotal + shippingCost
+    const afterCash =
+      payMethod === 'transfer' ? Math.round(productsTotal * (1 - CASH_DISCOUNT)) : productsTotal
+    const coupon = await getStoreCoupon(String(couponCode || ''))
+    const couponDiscount =
+      coupon?.type === 'percent' ? Math.round(afterCash * (coupon.value / 100)) : 0
+    const ship = coupon?.type === 'shipping' ? 0 : Number(shippingCost || 0)
+    const pointsUsed = Math.max(0, Number(loyaltyPoints) || 0)
+    const pointsDiscount = pointsUsed * POINT_VALUE_ARS
+    const totalOrderAmount = Math.max(0, afterCash - couponDiscount - pointsDiscount + ship)
+
+    const payload = await getPayload({ config })
 
     const orderRecord = await payload.create({
       collection: 'orders',
       data: {
-        paymentStatus: 'pending',
+        paymentStatus: payMethod === 'transfer' ? 'pending' : 'pending',
         customerName: customer.name,
         customerEmail: customer.email,
         customerPhone: customer.phone,
         shippingAddress,
-        items: (items as CheckoutItem[]).map((i, index) => ({
-          product: i.productId,
+        items: validatedItems.map((i) => ({
+          product: Number(i.id),
           quantity: i.quantity,
-          priceAtPurchase: validatedItems[index].unit_price,
+          priceAtPurchase: i.unit_price,
+          variantSku: i.variant.sku,
+          size: i.size,
+          color: i.color,
         })),
-        shippingCost,
+        shippingCost: ship,
+        discount: couponDiscount + pointsDiscount + (productsTotal - afterCash),
+        couponCode: coupon?.code || '',
+        loyaltyPointsUsed: pointsUsed,
         total: totalOrderAmount,
       },
+      overrideAccess: true,
     })
 
-    const mpItems = [...validatedItems]
-    if (shippingCost > 0) {
+    if (customer.email) {
+      const existing = await payload.find({
+        collection: 'customers',
+        where: { email: { equals: String(customer.email).toLowerCase() } },
+        limit: 1,
+        overrideAccess: true,
+      })
+      const earned = Math.floor(totalOrderAmount / 1000) * POINTS_PER_THOUSAND
+      if (existing.docs[0]) {
+        const current = Number(existing.docs[0].loyaltyPoints || 0)
+        await payload.update({
+          collection: 'customers',
+          id: existing.docs[0].id,
+          data: {
+            name: customer.name,
+            phone: customer.phone,
+            loyaltyPoints: Math.max(0, current - pointsUsed + (payMethod === 'transfer' ? 0 : earned)),
+          },
+          overrideAccess: true,
+        })
+      } else {
+        await payload.create({
+          collection: 'customers',
+          data: {
+            email: String(customer.email).toLowerCase(),
+            name: customer.name,
+            phone: customer.phone,
+            loyaltyPoints: 0,
+            password: randomPassword(),
+            emailVerified: true,
+          },
+          overrideAccess: true,
+          context: { storeAuth: true },
+        })
+      }
+    }
+
+    if (payMethod === 'transfer' || !process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN.includes('XXXXXX')) {
+      return NextResponse.json({
+        ok: true,
+        orderId: orderRecord.id,
+        total: totalOrderAmount,
+        message: 'Pedido creado. Completá el pago para confirmar.',
+      })
+    }
+
+    const mpItems = validatedItems.map((i) => ({
+      id: i.variant.sku,
+      title: i.title,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      currency_id: 'ARS' as const,
+    }))
+    if (ship > 0) {
       mpItems.push({
         id: 'shipping_cost_fee',
         title: 'Costo de Envío a Domicilio',
         quantity: 1,
-        unit_price: shippingCost,
+        unit_price: ship,
+        currency_id: 'ARS',
+      })
+    }
+    if (couponDiscount + pointsDiscount > 0) {
+      mpItems.push({
+        id: 'discount',
+        title: 'Descuento',
+        quantity: 1,
+        unit_price: -(couponDiscount + pointsDiscount),
         currency_id: 'ARS',
       })
     }
@@ -92,6 +191,7 @@ export async function POST(req: Request) {
       collection: 'orders',
       id: orderRecord.id,
       data: { mpPreferenceId: mpResponse.id },
+      overrideAccess: true,
     })
 
     return NextResponse.json({ init_point: mpResponse.init_point, preferenceId: mpResponse.id })
