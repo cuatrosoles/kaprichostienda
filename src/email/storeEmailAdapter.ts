@@ -40,7 +40,7 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
         fromName = settings.fromName || fromName
         fromAddress = settings.fromAddress || fromAddress
       } catch {
-        /* global todavía no existe durante el primer boot */
+        // Store settings may not exist on first boot.
       }
 
       const from = message.from || formatFrom(fromName, fromAddress)

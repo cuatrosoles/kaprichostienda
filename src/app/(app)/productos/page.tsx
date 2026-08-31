@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import ProductCard from '@/components/store/ProductCard'
 import { getStoreCategories, getStoreProducts } from '@/lib/storefront'
 
@@ -20,17 +21,17 @@ export default async function ProductosPage({
         {current?.title || (params.q ? `Resultados: ${params.q}` : 'Productos')}
       </h1>
       <div className="mt-6 flex flex-wrap gap-2">
-        <a href="/productos" className="border px-3 py-1 text-xs uppercase tracking-widest">
+        <Link href="/productos" className="border px-3 py-1 text-xs uppercase tracking-widest">
           Todos
-        </a>
+        </Link>
         {categories.map((c) => (
-          <a
+          <Link
             key={c.slug}
             href={`/productos?categoria=${c.slug}`}
             className={`border px-3 py-1 text-xs uppercase tracking-widest ${params.categoria === c.slug ? 'bg-black text-white' : ''}`}
           >
             {c.title}
-          </a>
+          </Link>
         ))}
       </div>
       <div className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-3">
