@@ -33,3 +33,6 @@ next-env.d.ts
 
 # uploads locales de Payload
 /media
+
+# tipos generados por Payload
+src/payload-types.ts

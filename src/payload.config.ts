@@ -15,6 +15,15 @@ import { cloudinaryAdapter } from './storage/cloudinaryAdapter'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+function getDatabaseUri() {
+  const uri = process.env.DATABASE_URI || ''
+  if (!uri) return ''
+  if (uri.includes('uselibpqcompat=')) return uri
+  return uri.includes('?')
+    ? `${uri}&uselibpqcompat=true`
+    : `${uri}?sslmode=require&uselibpqcompat=true`
+}
+
 const cloudinaryEnabled = Boolean(
   process.env.CLOUDINARY_CLOUD_NAME &&
     process.env.CLOUDINARY_API_KEY &&
@@ -40,9 +49,11 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
-      // Vercel es serverless: pocas conexiones por instancia. Supabase Free aguanta ~60.
+      connectionString: getDatabaseUri(),
       max: process.env.VERCEL === '1' ? 3 : 10,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     },
     // Crea/actualiza tablas al arrancar. Desactivar con PAYLOAD_DISABLE_PUSH=true cuando uses migraciones.
     push: process.env.PAYLOAD_DISABLE_PUSH !== 'true',

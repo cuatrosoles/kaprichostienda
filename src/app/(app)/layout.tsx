@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: 'Tienda online Kaprichos',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
