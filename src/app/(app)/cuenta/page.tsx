@@ -17,10 +17,10 @@ export default async function CuentaPage() {
       overrideAccess: true,
     })
     orders = result.docs.map((doc) => ({
-      id: doc.id,
+      id: Number(doc.id),
       total: Number(doc.total),
-      paymentStatus: doc.paymentStatus,
-      createdAt: doc.createdAt,
+      paymentStatus: String(doc.paymentStatus),
+      createdAt: String(doc.createdAt),
     }))
   } catch {
     orders = []
