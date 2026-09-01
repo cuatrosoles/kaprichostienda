@@ -39,6 +39,8 @@ postgresql://postgres.TU_REF:TU_PASSWORD@aws-0-sa-east-1.pooler.supabase.com:543
 
 6. Pegala en `DATABASE_URI` (`.env.local` y más tarde en Vercel).
 
+El plan free de Supabase limita el Session pooler a **15 clientes**. Si ves `EMAXCONNSESSION / max clients reached`, cerrá `npm run dev` local mientras usás Vercel (ambos pegan a la misma base) y esperá un minuto a que se liberen las sesiones. En Vercel el pool ya está en 1 conexión por lambda.
+
 No hace falta el cliente JS de Supabase: Payload habla directo con Postgres.
 
 Si el proyecto free se pausa por inactividad, reactivarlo desde el dashboard de Supabase.
