@@ -7,6 +7,9 @@ import { buildMegaMenu, type CatalogCategory } from '@/data/catalog'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 
+/** 'logo-left' = prueba actual. Volvé a 'classic' para el header original (logo al centro). */
+const HEADER_LAYOUT: 'classic' | 'logo-left' = 'logo-left'
+
 export default function Header({ categories }: { categories: CatalogCategory[] }) {
   const { count, openCart } = useCart()
   const { user } = useAuth()
@@ -40,65 +43,90 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
     setMenuOpen(false)
   }
 
+  const searchForm = (className: string, inputClassName: string) => (
+    <form onSubmit={onSearch} className={className}>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Buscar"
+        className={inputClassName}
+      />
+      <button type="submit" aria-label="Buscar" className="text-lg leading-none">
+        ⌕
+      </button>
+    </form>
+  )
+
+  const accountAndCart = (
+    <div className="flex items-center gap-4">
+      <Link
+        href={user ? '/cuenta' : '/cuenta/ingresar'}
+        className="hidden text-[11px] uppercase tracking-nav md:inline hover:opacity-60"
+      >
+        {user ? 'Mi cuenta' : 'Ingresar'}
+      </Link>
+      <button type="button" onClick={openCart} className="text-xl" aria-label="Carrito">
+        <span className="relative inline-block">
+          👜
+          {count > 0 && (
+            <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-kap-green px-1 text-[10px] text-white">
+              {count}
+            </span>
+          )}
+        </span>
+      </button>
+    </div>
+  )
+
+  const menuButton = (
+    <button type="button" className="md:hidden" aria-label="Menú" onClick={() => setMenuOpen((v) => !v)}>
+      <span className="block h-px w-5 bg-black" />
+      <span className="mt-1.5 block h-px w-5 bg-black" />
+      <span className="mt-1.5 block h-px w-5 bg-black" />
+    </button>
+  )
+
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white">
-      <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="md:hidden"
-            aria-label="Menú"
-            onClick={() => setMenuOpen((v) => !v)}
-          >
-            <span className="block h-px w-5 bg-black" />
-            <span className="mt-1.5 block h-px w-5 bg-black" />
-            <span className="mt-1.5 block h-px w-5 bg-black" />
-          </button>
-          <form onSubmit={onSearch} className="hidden items-center gap-2 md:flex">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar"
-              className="w-36 border-0 border-b border-neutral-400 bg-transparent py-1 text-sm outline-none focus:border-black"
-            />
-            <button type="submit" aria-label="Buscar" className="text-lg leading-none">
-              ⌕
-            </button>
-          </form>
-        </div>
-
-        <Link href="/" className="justify-self-center">
-          <img
-            src="/logo-kaprichos.webp"
-            alt="Kaprichos Tienda"
-            className="h-16 w-16 rounded-full object-cover md:h-20 md:w-20"
-          />
-        </Link>
-
-        <div className="flex items-center justify-self-end gap-4">
-          <Link
-            href={user ? '/cuenta' : '/cuenta/ingresar'}
-            className="hidden text-[11px] uppercase tracking-nav md:inline hover:opacity-60"
-          >
-            {user ? 'Mi cuenta' : 'Ingresar'}
-          </Link>
-          <button
-            type="button"
-            onClick={openCart}
-            className="text-xl"
-            aria-label="Carrito"
-          >
-          <span className="relative inline-block">
-            👜
-            {count > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-kap-green px-1 text-[10px] text-white">
-                {count}
-              </span>
+      {HEADER_LAYOUT === 'classic' ? (
+        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-4">
+          <div className="flex items-center gap-3">
+            {menuButton}
+            {searchForm(
+              'hidden items-center gap-2 md:flex',
+              'w-36 border-0 border-b border-neutral-400 bg-transparent py-1 text-sm outline-none focus:border-black',
             )}
-          </span>
-          </button>
+          </div>
+          <Link href="/" className="justify-self-center">
+            <img
+              src="/logo-kaprichos.webp"
+              alt="Kaprichos Tienda"
+              className="h-16 w-16 rounded-full object-cover md:h-20 md:w-20"
+            />
+          </Link>
+          <div className="justify-self-end">{accountAndCart}</div>
         </div>
-      </div>
+      ) : (
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center gap-3">
+            {menuButton}
+            <Link href="/" className="shrink-0">
+              <img
+                src="/logo-kaprichos.webp"
+                alt="Kaprichos Tienda"
+                className="h-20 w-20 rounded-full object-cover md:h-28 md:w-28"
+              />
+            </Link>
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {accountAndCart}
+            {searchForm(
+              'hidden items-center gap-2 md:flex',
+              'w-44 border-0 border-b border-neutral-400 bg-transparent py-1 text-right text-sm outline-none focus:border-black',
+            )}
+          </div>
+        </div>
+      )}
 
       <nav className="hidden justify-center gap-8 pb-4 text-[11px] font-medium uppercase tracking-nav md:flex">
         <Link href="/" className="hover:opacity-60">
