@@ -115,4 +115,4 @@ Después del primer deploy, si la URL no era la definitiva, actualizá `NEXT_PUB
 | `npm run dev` | Desarrollo |
 | `npm run build` | Build de producción |
 | `npm run generate:types` | Tipos de Payload |
-| `npm run generate:importmap` | Import map del admin |
+| `npm run push-schema` | Crea/actualiza tablas en Supabase (hace falta después de agregar colecciones o globals, p. ej. Hero) |

@@ -8,6 +8,11 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Kaprichos Tienda',
   description: 'Indumentaria Kaprichos. Envíos a todo el país. 3 cuotas sin interés.',
+  icons: {
+    icon: [{ url: '/logo-kaprichos.webp', type: 'image/webp' }],
+    shortcut: '/logo-kaprichos.webp',
+    apple: '/logo-kaprichos.webp',
+  },
 }
 
 export const dynamic = 'force-dynamic'
