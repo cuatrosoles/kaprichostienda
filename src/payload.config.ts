@@ -55,14 +55,14 @@ if (isVercel) {
 function postgresPool() {
   return {
     connectionString: databaseUri,
-    max: isVercel ? 1 : 3,
+    // Payload llama pool.connect() al iniciar y no libera ese cliente (listener de ECONNRESET).
+    // Con max: 1 las queries no tienen slot → "timeout exceeded when trying to connect".
+    // 6543 (transaction) aguanta varios clientes TCP sin gastar las 15 sesiones del Session pooler.
+    max: isVercel ? 3 : 5,
     min: 0,
-    idleTimeoutMillis: isVercel ? 1000 : 10_000,
-    connectionTimeoutMillis: isVercel ? 15_000 : 20_000,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
     allowExitOnIdle: true,
-    maxUses: isVercel ? 8 : 20,
-    maxLifetimeSeconds: isVercel ? 20 : 120,
-    keepAlive: false,
     ssl: {
       rejectUnauthorized: false,
     },

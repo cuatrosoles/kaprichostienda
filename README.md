@@ -40,9 +40,8 @@ postgresql://postgres.TU_REF:TU_PASSWORD@aws-0-sa-east-1.pooler.supabase.com:543
 
 El plan free limita el Session pooler a **15 sesiones**. Si ves `timeout exceeded when trying to connect` o `EMAXCONNSESSION`:
 
-- Cerrá `npm run dev` en tu PC (local y Vercel comparten la misma base).
-- Esperá ~1 minuto a que Supabase suelte las sesiones.
 - Confirmá en los logs de Vercel la línea `[kaprichos:db] pooler ...:6543`.
+- En Vercel el pool tiene que ser **mínimo 3** (Payload reserva 1 conexión y no la suelta; con `max: 1` las queries quedan en timeout).
 
 No hace falta el cliente JS de Supabase: Payload habla directo con Postgres.
 
