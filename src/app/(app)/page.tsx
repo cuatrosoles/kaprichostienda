@@ -1,40 +1,21 @@
 import Link from 'next/link'
 import ProductCard from '@/components/store/ProductCard'
-import { getStoreCategories, getStoreProducts } from '@/lib/storefront'
+import HeroSlider from '@/components/store/HeroSlider'
+import { getHomeHero, getStoreCategories, getStoreProducts } from '@/lib/storefront'
 
 export default async function HomePage() {
-  const [categories, news, featured] = await Promise.all([
+  const [categories, news, featured, hero] = await Promise.all([
     getStoreCategories(),
     getStoreProducts({ isNew: true }),
     getStoreProducts({ featured: true }),
+    getHomeHero(),
   ])
   const homeCategories = categories.filter((c) => c.showOnHome !== false)
   const showcase = news.length ? news : featured
 
   return (
     <>
-      <section className="relative bg-black text-white">
-        <div className="relative h-[calc(100svh-8.75rem)] min-h-[28rem] md:h-[calc(100svh-12rem)]">
-          <img
-            src="/catalog/hero-temporada.jpg"
-            alt="Nueva temporada Kaprichos"
-            className="absolute inset-0 h-full w-full object-cover object-[center_top]"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-black/10" />
-          <div className="relative z-10 mx-auto flex h-full max-w-6xl flex-col justify-end px-6 pb-12 md:pb-16">
-            <p className="font-script text-6xl md:text-8xl">Nueva</p>
-            <h1 className="font-display text-5xl uppercase tracking-wide text-kap-tan md:text-7xl">Temporada</h1>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <div className="bg-black/80 px-4 py-3 text-[11px] uppercase tracking-nav text-kap-tan">
-                3 cuotas sin interés
-              </div>
-              <div className="bg-black/80 px-4 py-3 text-[11px] uppercase tracking-nav text-kap-tan">
-                20% OFF efectivo o transferencia
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSlider hero={hero} />
 
       <section className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-12 text-center text-sm md:grid-cols-4">
         <div>

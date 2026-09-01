@@ -15,6 +15,7 @@ import { Categories } from './collections/Categories'
 import { Coupons } from './collections/Coupons'
 import { Customers } from './collections/Customers'
 import { StoreSettings } from './globals/StoreSettings'
+import { HomeHero } from './globals/HomeHero'
 import { storeEmailAdapter } from './email/storeEmailAdapter'
 import {
   cloudinaryAdapter,
@@ -63,7 +64,7 @@ export default buildConfig({
     },
   },
   collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],
-  globals: [StoreSettings],
+  globals: [StoreSettings, HomeHero],
   i18n: {
     fallbackLanguage: 'es',
     supportedLanguages: { es },

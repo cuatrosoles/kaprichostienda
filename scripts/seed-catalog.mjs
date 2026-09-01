@@ -111,4 +111,47 @@ for (const coupon of SEED_COUPONS) {
 }
 
 console.log('Catálogo de prueba sincronizado con Payload / Supabase.')
+
+try {
+  const hero = await payload.findGlobal({
+    slug: 'home-hero',
+    overrideAccess: true,
+  })
+  if (!hero.slides?.length) {
+    await payload.updateGlobal({
+      slug: 'home-hero',
+      data: {
+        autoplay: true,
+        intervalSeconds: 6,
+        transition: 'fade',
+        durationMs: 800,
+        showArrows: true,
+        showDots: true,
+        slides: [
+          {
+            active: true,
+            imageUrl: '/catalog/hero-temporada.jpg',
+            alt: 'Nueva temporada Kaprichos',
+            objectPosition: 'center_top',
+            eyebrow: 'Nueva',
+            title: 'Temporada',
+            badges: [
+              { text: '3 cuotas sin interés' },
+              { text: '20% OFF efectivo o transferencia' },
+            ],
+            ctaLabel: 'Ver productos',
+            ctaHref: '/productos',
+          },
+        ],
+      },
+      overrideAccess: true,
+    })
+    console.log('Hero de inicio creado con la diapositiva inicial.')
+  } else {
+    console.log('Hero de inicio ya tiene diapositivas; no se pisa.')
+  }
+} catch (error) {
+  console.warn('No se pudo guardar el hero (¿schema pendiente de push?):', error)
+}
+
 process.exit(0)

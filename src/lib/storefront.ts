@@ -2,7 +2,8 @@ import { getPayload } from 'payload'
 import type { Where } from 'payload'
 import config from '@payload-config'
 import type { Category, Coupon, Media, Product } from '@/payload-types'
-import type { CatalogCategory, CatalogCoupon, CatalogProduct, ProductVariant } from '@/data/catalog'
+import type { CatalogCategory, CatalogCoupon, CatalogProduct, HeroView, ProductVariant } from '@/data/catalog'
+import { DEFAULT_HERO } from '@/data/catalog'
 import { SEED_CATEGORIES } from '@/data/seed-catalog'
 
 function mediaUrl(file: number | Media | null | undefined): string | null {
@@ -193,5 +194,61 @@ export async function getStoreCoupon(code: string): Promise<CatalogCoupon | null
   } catch (error) {
     console.error('No se pudo leer el cupón:', error)
     return null
+  }
+}
+
+const OBJECT_POSITION: Record<string, string> = {
+  center_top: 'center top',
+  center: 'center',
+  center_bottom: 'center bottom',
+  left: 'left',
+  right: 'right',
+}
+
+function heroImageUrl(image: number | Media | null | undefined, fallback?: string | null) {
+  if (image && typeof image === 'object') return image.url || fallback || null
+  return fallback || null
+}
+
+export async function getHomeHero(): Promise<HeroView> {
+  try {
+    const payload = await payloadClient()
+    const doc = await payload.findGlobal({
+      slug: 'home-hero',
+      depth: 1,
+      overrideAccess: true,
+    })
+    const slides = (doc.slides || [])
+      .filter((slide) => slide.active !== false)
+      .map((slide) => {
+        const image = heroImageUrl(slide.image, slide.imageUrl) || ''
+        return {
+          image,
+          alt: slide.alt || slide.title || 'Kaprichos',
+          eyebrow: slide.eyebrow || undefined,
+          title: slide.title || undefined,
+          badges: (slide.badges || []).map((b) => b.text).filter(Boolean),
+          ctaLabel: slide.ctaLabel || undefined,
+          ctaHref: slide.ctaHref || undefined,
+          objectPosition: OBJECT_POSITION[slide.objectPosition || 'center_top'] || 'center top',
+        }
+      })
+      .filter((slide) => Boolean(slide.image))
+
+    if (!slides.length) return DEFAULT_HERO
+
+    const transition = doc.transition === 'slide' || doc.transition === 'zoom' ? doc.transition : 'fade'
+    return {
+      slides,
+      transition,
+      intervalMs: Math.max(2000, Number(doc.intervalSeconds || 6) * 1000),
+      durationMs: Math.min(2500, Math.max(200, Number(doc.durationMs || 800))),
+      autoplay: doc.autoplay !== false,
+      showArrows: doc.showArrows !== false,
+      showDots: doc.showDots !== false,
+    }
+  } catch (error) {
+    console.error('No se pudo leer el hero:', error)
+    return DEFAULT_HERO
   }
 }

@@ -100,9 +100,11 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'store-settings': StoreSetting;
+    'home-hero': HomeHero;
   };
   globalsSelect: {
     'store-settings': StoreSettingsSelect<false> | StoreSettingsSelect<true>;
+    'home-hero': HomeHeroSelect<false> | HomeHeroSelect<true>;
   };
   locale: null;
   widgets: {
@@ -151,6 +153,8 @@ export interface CustomerAuthOperations {
   };
 }
 /**
+ * Cuentas con acceso al panel de control. No son clientes de la tienda.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
@@ -177,6 +181,8 @@ export interface User {
   collection: 'users';
 }
 /**
+ * Imágenes y archivos. Se guardan en Cloudinary, no en Vercel.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
@@ -215,6 +221,8 @@ export interface Media {
   };
 }
 /**
+ * Categorías del catálogo y del mega menú.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
  */
@@ -231,6 +239,8 @@ export interface Category {
   createdAt: string;
 }
 /**
+ * Catálogo de indumentaria con variantes de talle y color.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
@@ -263,6 +273,8 @@ export interface Product {
   createdAt: string;
 }
 /**
+ * Pedidos de la tienda y estado de pago.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
@@ -302,6 +314,8 @@ export interface Order {
   createdAt: string;
 }
 /**
+ * Códigos de descuento y envío gratis.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "coupons".
  */
@@ -316,7 +330,7 @@ export interface Coupon {
   createdAt: string;
 }
 /**
- * Cuentas de la tienda (registro, login y puntos). No acceden al panel admin.
+ * Cuentas de clientes de la tienda (registro, inicio de sesión y puntos). No acceden al panel.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "customers".
@@ -690,7 +704,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Login, registro, captcha y correo de la tienda pública.
+ * Inicio de sesión, registro, captcha y correo de la tienda pública.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "store-settings".
@@ -708,11 +722,11 @@ export interface StoreSetting {
   captchaEnabled?: boolean | null;
   captchaProvider?: ('turnstile' | 'recaptcha') | null;
   /**
-   * Visible en el frontend. También podés usar NEXT_PUBLIC_TURNSTILE_SITE_KEY / NEXT_PUBLIC_RECAPTCHA_SITE_KEY.
+   * Visible en el sitio. También se puede usar NEXT_PUBLIC_TURNSTILE_SITE_KEY o NEXT_PUBLIC_RECAPTCHA_SITE_KEY.
    */
   captchaSiteKey?: string | null;
   /**
-   * Nunca se envía al navegador. También podés usar TURNSTILE_SECRET_KEY / RECAPTCHA_SECRET_KEY.
+   * Nunca se envía al navegador. También se puede usar TURNSTILE_SECRET_KEY o RECAPTCHA_SECRET_KEY.
    */
   captchaSecretKey?: string | null;
   fromName?: string | null;
@@ -724,6 +738,61 @@ export interface StoreSetting {
   smtpPort?: number | null;
   smtpUser?: string | null;
   smtpPassword?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Carrusel de la portada: imágenes, textos, botones y transiciones.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-hero".
+ */
+export interface HomeHero {
+  id: number;
+  /**
+   * El orden de esta lista es el orden en la portada. Arrastrá para reordenar.
+   */
+  slides?:
+    | {
+        active?: boolean | null;
+        /**
+         * Subí un archivo (Cloudinary). Si no, usá la URL de abajo.
+         */
+        image?: (number | null) | Media;
+        /**
+         * Ej: /catalog/hero-temporada.jpg
+         */
+        imageUrl?: string | null;
+        alt?: string | null;
+        objectPosition?: ('center_top' | 'center' | 'center_bottom' | 'left' | 'right') | null;
+        /**
+         * Ej: Nueva
+         */
+        eyebrow?: string | null;
+        /**
+         * Ej: Temporada
+         */
+        title?: string | null;
+        badges?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        ctaLabel?: string | null;
+        /**
+         * Ej: /productos
+         */
+        ctaHref?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  autoplay?: boolean | null;
+  intervalSeconds?: number | null;
+  transition?: ('fade' | 'slide' | 'zoom') | null;
+  durationMs?: number | null;
+  showArrows?: boolean | null;
+  showDots?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -747,6 +816,41 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   smtpPort?: T;
   smtpUser?: T;
   smtpPassword?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "home-hero_select".
+ */
+export interface HomeHeroSelect<T extends boolean = true> {
+  slides?:
+    | T
+    | {
+        active?: T;
+        image?: T;
+        imageUrl?: T;
+        alt?: T;
+        objectPosition?: T;
+        eyebrow?: T;
+        title?: T;
+        badges?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        ctaLabel?: T;
+        ctaHref?: T;
+        id?: T;
+      };
+  autoplay?: T;
+  intervalSeconds?: T;
+  transition?: T;
+  durationMs?: T;
+  showArrows?: T;
+  showDots?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

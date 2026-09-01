@@ -39,6 +39,46 @@ export type CatalogCoupon = {
   label: string
 }
 
+export type HeroSlideView = {
+  image: string
+  alt: string
+  eyebrow?: string
+  title?: string
+  badges: string[]
+  ctaLabel?: string
+  ctaHref?: string
+  objectPosition: string
+}
+
+export type HeroView = {
+  slides: HeroSlideView[]
+  transition: 'fade' | 'slide' | 'zoom'
+  intervalMs: number
+  durationMs: number
+  autoplay: boolean
+  showArrows: boolean
+  showDots: boolean
+}
+
+export const DEFAULT_HERO: HeroView = {
+  slides: [
+    {
+      image: '/catalog/hero-temporada.jpg',
+      alt: 'Nueva temporada Kaprichos',
+      eyebrow: 'Nueva',
+      title: 'Temporada',
+      badges: ['3 cuotas sin interés', '20% OFF efectivo o transferencia'],
+      objectPosition: 'center top',
+    },
+  ],
+  transition: 'fade',
+  intervalMs: 6000,
+  durationMs: 800,
+  autoplay: true,
+  showArrows: true,
+  showDots: true,
+}
+
 export const ANNOUNCEMENTS = [
   'Envíos a todo el país',
   '3 cuotas sin interés',
