@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
-import { getPayload } from 'payload'
-import config from '@payload-config'
 import { CASH_DISCOUNT, POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
 import { findStoreProductDoc, getStoreCoupon, mapProduct } from '@/lib/storefront'
 import { randomPassword } from '@/lib/auth'
+import { payloadClient } from '@/lib/payload'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -72,7 +71,7 @@ export async function POST(req: Request) {
     const pointsDiscount = pointsUsed * POINT_VALUE_ARS
     const totalOrderAmount = Math.max(0, afterCash - couponDiscount - pointsDiscount + ship)
 
-    const payload = await getPayload({ config })
+    const payload = await payloadClient()
 
     const orderRecord = await payload.create({
       collection: 'orders',

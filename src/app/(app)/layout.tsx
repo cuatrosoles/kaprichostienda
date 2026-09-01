@@ -11,6 +11,8 @@ export const metadata: Metadata = {
 }
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 const fallbackAuth = {
   loginEnabled: true,
@@ -23,11 +25,9 @@ const fallbackAuth = {
 }
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const [categories, user, settings] = await Promise.all([
-    getStoreCategories(),
-    getStoreCustomer(),
-    getStoreSettings().catch(() => null),
-  ])
+  const settings = await getStoreSettings().catch(() => null)
+  const user = await getStoreCustomer()
+  const categories = await getStoreCategories()
   const authConfig = settings ? getPublicAuthConfig(settings) : fallbackAuth
 
   return (

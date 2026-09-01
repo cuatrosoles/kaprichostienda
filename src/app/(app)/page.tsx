@@ -4,13 +4,12 @@ import HeroSlider from '@/components/store/HeroSlider'
 import { getHomeHero, getStoreCategories, getStoreProducts } from '@/lib/storefront'
 
 export default async function HomePage() {
-  const [categories, news, featured, hero] = await Promise.all([
-    getStoreCategories(),
-    getStoreProducts({ isNew: true }),
-    getStoreProducts({ featured: true }),
-    getHomeHero(),
-  ])
+  const categories = await getStoreCategories()
+  const products = await getStoreProducts()
+  const hero = await getHomeHero()
   const homeCategories = categories.filter((c) => c.showOnHome !== false)
+  const news = products.filter((p) => p.isNew)
+  const featured = products.filter((p) => p.featured)
   const showcase = news.length ? news : featured
 
   return (

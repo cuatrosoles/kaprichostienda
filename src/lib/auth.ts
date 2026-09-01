@@ -1,8 +1,9 @@
 import { randomBytes } from 'node:crypto'
 import { cookies } from 'next/headers'
-import { getPayload } from 'payload'
-import config from '@payload-config'
+import { unstable_cache } from 'next/cache'
+import { cache } from 'react'
 import type { Customer, StoreSetting } from '@/payload-types'
+import { withPayload } from '@/lib/payload'
 
 export const CUSTOMER_COOKIE = 'kaprichos-customer-token'
 
@@ -50,17 +51,22 @@ export function cookieOptions(maxAgeSeconds: number) {
   }
 }
 
-export async function payloadClient() {
-  return getPayload({ config })
-}
+export { payloadClient } from '@/lib/payload'
 
-export async function getStoreSettings(): Promise<StoreSetting> {
-  const payload = await payloadClient()
-  return payload.findGlobal({
-    slug: 'store-settings',
-    overrideAccess: true,
-  })
-}
+export const getStoreSettings = cache(async (): Promise<StoreSetting> => loadStoreSettings())
+
+const loadStoreSettings = unstable_cache(
+  async (): Promise<StoreSetting> => {
+    return withPayload((payload) =>
+      payload.findGlobal({
+        slug: 'store-settings',
+        overrideAccess: true,
+      }),
+    )
+  },
+  ['store-settings'],
+  { revalidate: 60 },
+)
 
 export function getPublicAuthConfig(settings: StoreSetting): PublicAuthConfig {
   const provider = settings.captchaProvider === 'recaptcha' ? 'recaptcha' : 'turnstile'
@@ -86,20 +92,21 @@ export async function getCustomerToken() {
   return (await cookies()).get(CUSTOMER_COOKIE)?.value || null
 }
 
-export async function getStoreCustomer(): Promise<PublicCustomer | null> {
+export const getStoreCustomer = cache(async (): Promise<PublicCustomer | null> => {
   const token = await getCustomerToken()
   if (!token) return null
   try {
-    const payload = await payloadClient()
-    const headers = new Headers()
-    headers.set('Authorization', `JWT ${token}`)
-    const { user } = await payload.auth({ headers })
-    if (!user || user.collection !== 'customers') return null
-    return toPublicCustomer(user as Customer)
+    return await withPayload(async (payload) => {
+      const headers = new Headers()
+      headers.set('Authorization', `JWT ${token}`)
+      const { user } = await payload.auth({ headers })
+      if (!user || user.collection !== 'customers') return null
+      return toPublicCustomer(user as Customer)
+    })
   } catch {
     return null
   }
-}
+})
 
 export async function setCustomerCookie(token: string, days: number) {
   const store = await cookies()

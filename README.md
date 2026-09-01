@@ -30,16 +30,19 @@ Payload usa Postgres. En el plan free de Supabase alcanza para arrancar (500 MB)
 1. Entrá a [supabase.com/dashboard](https://supabase.com/dashboard) y creá un proyecto (región **South America East / São Paulo** si está disponible: menor latencia desde Argentina).
 2. Guardá la **database password** que te muestra al crear el proyecto.
 3. Andá a **Project Settings → Database → Connection string**.
-4. Elegí **Session pooler** (puerto **5432**, no 6543). Payload/Drizzle usa prepared statements y el Transaction pooler (6543) suele fallar.
-5. Copiá la URI y agregá `?sslmode=require` al final si no viene:
+4. Copiá la URI del **Session pooler** (puerto **5432**) y agregá `?sslmode=require` al final si no viene:
 
 ```text
 postgresql://postgres.TU_REF:TU_PASSWORD@aws-0-sa-east-1.pooler.supabase.com:5432/postgres?sslmode=require
 ```
 
-6. Pegala en `DATABASE_URI` (`.env.local` y más tarde en Vercel).
+5. Pegala en `DATABASE_URI` (`.env.local` y en Vercel). En local se usa el puerto 5432 (hace falta para `push` de esquema). **En Vercel la app cambia sola el puerto a 6543** (Transaction pooler), que es el modo que funciona con lambdas.
 
-El plan free de Supabase limita el Session pooler a **15 clientes**. Si ves `EMAXCONNSESSION / max clients reached`, cerrá `npm run dev` local mientras usás Vercel (ambos pegan a la misma base) y esperá un minuto a que se liberen las sesiones. En Vercel el pool ya está en 1 conexión por lambda.
+El plan free limita el Session pooler a **15 sesiones**. Si ves `timeout exceeded when trying to connect` o `EMAXCONNSESSION`:
+
+- Cerrá `npm run dev` en tu PC (local y Vercel comparten la misma base).
+- Esperá ~1 minuto a que Supabase suelte las sesiones.
+- Confirmá en los logs de Vercel la línea `[kaprichos:db] pooler ...:6543`.
 
 No hace falta el cliente JS de Supabase: Payload habla directo con Postgres.
 
@@ -88,7 +91,7 @@ En [vercel.com](https://vercel.com) → **Add New → Project** → importá el 
 
 | Variable | Valor |
 | --- | --- |
-| `DATABASE_URI` | URI Session pooler de Supabase |
+| `DATABASE_URI` | URI del **Session pooler** de Supabase (puerto 5432). En runtime Vercel la app la pasa a 6543. |
 | `PAYLOAD_SECRET` | El mismo secret de 32+ caracteres que en local |
 | `NEXT_PUBLIC_SERVER_URL` | `https://tu-proyecto.vercel.app` (actualizalo después del primer deploy si el dominio cambia) |
 | `NEXT_PUBLIC_WEBHOOK_URL` | La misma URL de Vercel, **sin** barra final |

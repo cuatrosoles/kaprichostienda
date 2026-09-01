@@ -27,29 +27,42 @@ import {
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const isVercel = Boolean(process.env.VERCEL)
+
 function getDatabaseUri() {
-  const uri = process.env.DATABASE_URI || ''
+  let uri = process.env.DATABASE_URI || ''
   if (!uri) return ''
+
+  // Session pooler (5432) = máx. 15 sesiones en free; las lambdas las dejan colgadas.
+  // Transaction pooler (6543) suelta el backend al terminar cada query (modo serverless).
+  if (isVercel) {
+    uri = uri.replace(/pooler\.supabase\.com:5432/gi, 'pooler.supabase.com:6543')
+  }
+
   if (uri.includes('uselibpqcompat=')) return uri
   return uri.includes('?')
     ? `${uri}&uselibpqcompat=true`
     : `${uri}?sslmode=require&uselibpqcompat=true`
 }
 
-const isVercel = process.env.VERCEL === '1'
+const databaseUri = getDatabaseUri()
+
+if (isVercel) {
+  const host = databaseUri.match(/@([^/?]+)/)?.[1] || 'sin-host'
+  console.info('[kaprichos:db] pooler', host)
+}
 
 function postgresPool() {
   return {
-    connectionString: getDatabaseUri(),
-    // Supabase Session pooler (free) admite ~15 clientes. En Vercel cada lambda
-    // abre su propio pool: max 1. En local, 3 para no comerse el cupo si también hay deploy.
+    connectionString: databaseUri,
     max: isVercel ? 1 : 3,
     min: 0,
-    idleTimeoutMillis: isVercel ? 5000 : 10_000,
-    connectionTimeoutMillis: 8000,
+    idleTimeoutMillis: isVercel ? 1000 : 10_000,
+    connectionTimeoutMillis: isVercel ? 15_000 : 20_000,
     allowExitOnIdle: true,
-    maxUses: 50,
-    maxLifetimeSeconds: 60,
+    maxUses: isVercel ? 8 : 20,
+    maxLifetimeSeconds: isVercel ? 20 : 120,
+    keepAlive: false,
     ssl: {
       rejectUnauthorized: false,
     },
@@ -102,6 +115,7 @@ export default buildConfig({
     // El schema se actualiza en local (`npm run dev`) contra la misma base de Supabase.
     push: !isVercel && process.env.PAYLOAD_DISABLE_PUSH !== 'true',
     disableCreateDatabase: isVercel,
+    ...(isVercel ? { transactionOptions: false as const } : {}),
   }),
   sharp,
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',

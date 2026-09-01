@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getPayload } from 'payload'
 import type { Payload } from 'payload'
-import config from '@payload-config'
+import { payloadClient } from '@/lib/payload'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -177,7 +176,7 @@ export async function POST(req: Request) {
 
     if (payment.status !== 'approved') {
       if (payment.status === 'rejected' || payment.status === 'cancelled') {
-        const payload = await getPayload({ config })
+        const payload = await payloadClient()
         await payload.update({
           collection: 'orders',
           id: orderId,
@@ -191,7 +190,7 @@ export async function POST(req: Request) {
       return ack()
     }
 
-    const payload = await getPayload({ config })
+    const payload = await payloadClient()
     await applyApprovedPayment({
       payload,
       orderId,
