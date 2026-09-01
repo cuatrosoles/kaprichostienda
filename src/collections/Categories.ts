@@ -2,9 +2,15 @@ import type { CollectionConfig } from 'payload'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
+  labels: {
+    singular: 'Categoría',
+    plural: 'Categorías',
+  },
   admin: {
     useAsTitle: 'title',
+    group: 'Tienda',
     defaultColumns: ['title', 'slug', 'menuGroup', 'sort'],
+    description: 'Categorías del catálogo y del mega menú.',
   },
   access: { read: () => true },
   fields: [

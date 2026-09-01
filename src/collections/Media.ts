@@ -2,11 +2,18 @@ import type { CollectionConfig } from 'payload'
 
 export const Media: CollectionConfig = {
   slug: 'media',
+  labels: {
+    singular: 'Archivo',
+    plural: 'Archivos',
+  },
+  admin: {
+    group: 'Tienda',
+    description: 'Imágenes y archivos. Se guardan en Cloudinary, no en Vercel.',
+  },
   access: {
     read: () => true,
   },
   upload: {
-    // Nunca persistir archivos en el filesystem de Vercel (plan Hobby).
     disableLocalStorage: true,
     imageSizes: [
       { name: 'thumbnail', width: 400, height: 300, position: 'centre' },
@@ -16,6 +23,6 @@ export const Media: CollectionConfig = {
     mimeTypes: ['image/*'],
   },
   fields: [
-    { name: 'alt', type: 'text', required: true, label: 'Texto Alternativo (SEO)' },
+    { name: 'alt', type: 'text', required: true, label: 'Texto alternativo (SEO)' },
   ],
 }

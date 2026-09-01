@@ -3,6 +3,7 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { cloudStoragePlugin } from '@payloadcms/plugin-cloud-storage'
 import path from 'path'
 import { buildConfig } from 'payload'
+import { es } from 'payload/i18n/es'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
@@ -39,12 +40,13 @@ const { folder: cloudinaryFolder } = getCloudinaryEnv()
 export default buildConfig({
   admin: {
     user: Users.slug,
+    dateFormat: 'dd/MM/yyyy HH:mm',
     importMap: {
       baseDir: path.resolve(dirname),
       importMapFile: path.resolve(dirname, 'app/(cms)/admin/importMap.js'),
     },
     meta: {
-      titleSuffix: ' | Kaprichos CMS',
+      titleSuffix: ' | Kaprichos',
       icons: [
         {
           rel: 'icon',
@@ -62,6 +64,10 @@ export default buildConfig({
   },
   collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],
   globals: [StoreSettings],
+  i18n: {
+    fallbackLanguage: 'es',
+    supportedLanguages: { es },
+  },
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   // Payload llama `email({ payload })` en runtime; el tipo público espera el adapter ya resuelto.

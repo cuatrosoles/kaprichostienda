@@ -8,7 +8,7 @@ export const StoreSettings: GlobalConfig = {
   label: 'Configuración de la tienda',
   admin: {
     group: 'Tienda',
-    description: 'Login, registro, captcha y correo de la tienda pública.',
+    description: 'Inicio de sesión, registro, captcha y correo de la tienda pública.',
   },
   access: {
     read: () => true,
@@ -68,7 +68,7 @@ export const StoreSettings: GlobalConfig = {
               name: 'captchaEnabled',
               type: 'checkbox',
               defaultValue: false,
-              label: 'Activar captcha en login, registro y recuperación',
+              label: 'Activar captcha en inicio de sesión, registro y recuperación',
             },
             {
               name: 'captchaProvider',
@@ -83,18 +83,20 @@ export const StoreSettings: GlobalConfig = {
             {
               name: 'captchaSiteKey',
               type: 'text',
-              label: 'Site key (pública)',
+              label: 'Clave pública del captcha',
               admin: {
-                description: 'Visible en el frontend. También podés usar NEXT_PUBLIC_TURNSTILE_SITE_KEY / NEXT_PUBLIC_RECAPTCHA_SITE_KEY.',
+                description:
+                  'Visible en el sitio. También se puede usar NEXT_PUBLIC_TURNSTILE_SITE_KEY o NEXT_PUBLIC_RECAPTCHA_SITE_KEY.',
               },
             },
             {
               name: 'captchaSecretKey',
               type: 'text',
-              label: 'Secret key',
+              label: 'Clave secreta',
               access: { read: secretRead },
               admin: {
-                description: 'Nunca se envía al navegador. También podés usar TURNSTILE_SECRET_KEY / RECAPTCHA_SECRET_KEY.',
+                description:
+                  'Nunca se envía al navegador. También se puede usar TURNSTILE_SECRET_KEY o RECAPTCHA_SECRET_KEY.',
               },
             },
           ],
@@ -117,26 +119,26 @@ export const StoreSettings: GlobalConfig = {
             {
               name: 'smtpHost',
               type: 'text',
-              label: 'SMTP host',
+              label: 'Servidor SMTP',
               access: { read: secretRead },
             },
             {
               name: 'smtpPort',
               type: 'number',
               defaultValue: 587,
-              label: 'SMTP puerto',
+              label: 'Puerto SMTP',
               access: { read: secretRead },
             },
             {
               name: 'smtpUser',
               type: 'text',
-              label: 'SMTP usuario',
+              label: 'Usuario SMTP',
               access: { read: secretRead },
             },
             {
               name: 'smtpPassword',
               type: 'text',
-              label: 'SMTP contraseña',
+              label: 'Contraseña SMTP',
               access: { read: secretRead },
             },
           ],

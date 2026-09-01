@@ -16,7 +16,7 @@ export const Customers: CollectionConfig = {
     useAsTitle: 'email',
     group: 'Tienda',
     defaultColumns: ['email', 'name', 'loyaltyPoints', 'emailVerified'],
-    description: 'Cuentas de la tienda (registro, login y puntos). No acceden al panel admin.',
+    description: 'Cuentas de clientes de la tienda (registro, inicio de sesión y puntos). No acceden al panel.',
   },
   auth: {
     tokenExpiration: 60 * 60 * 24 * 14,
@@ -94,6 +94,7 @@ export const Customers: CollectionConfig = {
     {
       name: 'verifyToken',
       type: 'text',
+      label: 'Token de verificación',
       admin: { hidden: true },
       access: {
         read: ({ req }) => isAdminUser(req.user),
@@ -103,6 +104,7 @@ export const Customers: CollectionConfig = {
     {
       name: 'verifyTokenExpires',
       type: 'date',
+      label: 'Vencimiento del token de verificación',
       admin: { hidden: true },
       access: {
         read: ({ req }) => isAdminUser(req.user),
