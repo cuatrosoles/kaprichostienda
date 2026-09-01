@@ -86,47 +86,15 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
     </button>
   )
 
-  const megaPanel =
-    mega && (
-      <div className="absolute left-1/2 top-full z-50 w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-4">
-        <div className="border border-neutral-200 bg-white p-8 shadow-xl">
-          <div
-            className="grid gap-8 text-left"
-            style={{ gridTemplateColumns: `repeat(${Math.max(megaMenu.length, 1)}, minmax(0, 1fr))` }}
-          >
-            {megaMenu.map((col) => (
-              <div key={col.title}>
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-kap-green">{col.title}</p>
-                <ul className="space-y-2 normal-case tracking-normal">
-                  {col.links.map((l) => (
-                    <li key={l.href + l.label}>
-                      <Link
-                        href={l.href}
-                        className="text-xs text-neutral-700 hover:text-black"
-                        onClick={() => setMega(false)}
-                      >
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )
-
   const desktopNav = (
     <nav className="hidden min-w-0 items-center justify-center gap-5 text-[11px] font-medium uppercase tracking-nav md:flex lg:gap-8">
       <Link href="/" className="hover:opacity-60">
         Inicio
       </Link>
-      <div className="relative" onMouseEnter={openMega} onMouseLeave={closeMega}>
+      <div onMouseEnter={openMega} onMouseLeave={closeMega}>
         <Link href="/productos" className="inline-block hover:opacity-60">
           Productos
         </Link>
-        {megaPanel}
       </div>
       <Link href="/contacto" className="hover:opacity-60">
         Contacto
@@ -182,6 +150,42 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
               'hidden items-center gap-2 md:flex',
               'w-44 border-0 border-b border-neutral-400 bg-transparent py-1 text-right text-sm outline-none focus:border-black',
             )}
+          </div>
+        </div>
+      )}
+
+      {mega && (
+        <div className="pointer-events-none absolute inset-x-0 top-full z-50 hidden md:block">
+          <div
+            className="pointer-events-auto mx-auto w-[min(920px,calc(100vw-2rem))] pt-3"
+            onMouseEnter={openMega}
+            onMouseLeave={closeMega}
+          >
+            <div className="border border-neutral-200 bg-white p-8 shadow-xl">
+              <div
+                className="grid gap-8 text-left"
+                style={{ gridTemplateColumns: `repeat(${Math.max(megaMenu.length, 1)}, minmax(0, 1fr))` }}
+              >
+                {megaMenu.map((col) => (
+                  <div key={col.title}>
+                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-kap-green">{col.title}</p>
+                    <ul className="space-y-2 normal-case tracking-normal">
+                      {col.links.map((l) => (
+                        <li key={l.href + l.label}>
+                          <Link
+                            href={l.href}
+                            className="text-xs text-neutral-700 hover:text-black"
+                            onClick={() => setMega(false)}
+                          >
+                            {l.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
