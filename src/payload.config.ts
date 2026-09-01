@@ -45,6 +45,19 @@ export default buildConfig({
     },
     meta: {
       titleSuffix: ' | Kaprichos CMS',
+      icons: [
+        {
+          rel: 'icon',
+          type: 'image/webp',
+          url: '/logo-kaprichos.webp',
+        },
+      ],
+    },
+    components: {
+      graphics: {
+        Logo: '/graphics/Logo',
+        Icon: '/graphics/Icon',
+      },
     },
   },
   collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],

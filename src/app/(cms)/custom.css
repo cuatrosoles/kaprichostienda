@@ -1,1 +1,6 @@
 /* Estilos personalizados del panel de Payload CMS */
+.login__brand img,
+.nav__logotype img,
+.graphic-logo img {
+  border-radius: 50%;
+}
