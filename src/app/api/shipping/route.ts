@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server'
+import { lookupArgentinePostalCode, normalizeArgentineZip } from '@/lib/postalCode'
 
 export async function POST(req: Request) {
   try {
     const { zipCode, totalWeight } = await req.json()
+    const { digits } = normalizeArgentineZip(String(zipCode || ''))
 
-    if (!zipCode || zipCode.length < 4) {
+    if (digits.length !== 4) {
       return NextResponse.json({ error: 'Código postal inválido' }, { status: 400 })
     }
 
+    const location = await lookupArgentinePostalCode(String(zipCode))
+
     const baseCost = 4500
-    const weightSurcharge = Math.ceil(totalWeight / 1000) * 850
+    const weightSurcharge = Math.ceil(Number(totalWeight || 0) / 1000) * 850
 
     let regionalMultiplier = 1.0
-    const prefix = parseInt(String(zipCode).substring(0, 2), 10)
+    const prefix = parseInt(digits.substring(0, 2), 10)
 
     if (prefix >= 10 && prefix <= 14) regionalMultiplier = 0.9
     else if (prefix >= 16 && prefix <= 18) regionalMultiplier = 1.0
@@ -41,7 +45,7 @@ export async function POST(req: Request) {
       },
     ]
 
-    return NextResponse.json({ options: deliveryOptions })
+    return NextResponse.json({ options: deliveryOptions, location })
   } catch {
     return NextResponse.json({ error: 'Error al cotizar logística de envíos' }, { status: 500 })
   }

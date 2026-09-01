@@ -10,6 +10,7 @@ import {
   POINT_VALUE_ARS,
   POINTS_PER_THOUSAND,
 } from '@/data/catalog'
+import type { PostalLocation } from '@/lib/postalCode'
 
 type ShippingOption = { id: string; name: string; cost: number; eta: string }
 
@@ -19,6 +20,8 @@ export default function CarritoView() {
   const [zipCode, setZipCode] = useState('')
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([])
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null)
+  const [shippingLocation, setShippingLocation] = useState<PostalLocation | null>(null)
+  const [shippingError, setShippingError] = useState('')
   const [loadingShipping, setLoadingShipping] = useState(false)
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState<CatalogCoupon | null>(null)
@@ -50,8 +53,9 @@ export default function CarritoView() {
   const grandTotal = Math.max(0, afterCoupon - pointsValue + shippingCost)
 
   const handleCalculateShipping = async () => {
-    if (!zipCode) return
+    if (!zipCode.trim()) return
     setLoadingShipping(true)
+    setShippingError('')
     try {
       const res = await fetch('/api/shipping', {
         method: 'POST',
@@ -59,9 +63,23 @@ export default function CarritoView() {
         body: JSON.stringify({ zipCode, totalWeight }),
       })
       const data = await res.json()
-      if (data.options) {
-        setShippingOptions(data.options)
-        setSelectedShipping(data.options[0])
+      if (!res.ok || !data.options) {
+        setShippingOptions([])
+        setSelectedShipping(null)
+        setShippingLocation(null)
+        setShippingError(data.error || 'No se pudo calcular el envío')
+        return
+      }
+      setShippingOptions(data.options)
+      setSelectedShipping(data.options[0])
+      const location = data.location as PostalLocation | null
+      setShippingLocation(location)
+      if (location) {
+        setAddress((prev) => ({
+          ...prev,
+          city: location.locality || location.city || prev.city,
+          province: location.province || prev.province,
+        }))
       }
     } finally {
       setLoadingShipping(false)
@@ -179,14 +197,41 @@ export default function CarritoView() {
           <div className="flex gap-2">
             <input
               value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
+              onChange={(e) => {
+                setZipCode(e.target.value)
+                setShippingError('')
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  void handleCalculateShipping()
+                }
+              }}
               placeholder="Código postal"
+              inputMode="numeric"
+              autoComplete="postal-code"
               className="store-input"
             />
             <button type="button" onClick={handleCalculateShipping} className="store-btn-outline whitespace-nowrap">
               {loadingShipping ? '...' : 'Calcular'}
             </button>
           </div>
+          {shippingError && <p className="text-xs text-red-600">{shippingError}</p>}
+          {shippingLocation && (
+            <div className="border border-kap-green/30 bg-[#f4f7f4] px-3 py-2 text-sm">
+              <p className="font-medium text-kap-green">
+                CP {shippingLocation.zipCode} · {shippingLocation.label}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-600">
+                {shippingLocation.locality && shippingLocation.locality !== shippingLocation.city
+                  ? `Localidad: ${shippingLocation.locality} · Ciudad: ${shippingLocation.city} · Provincia: ${shippingLocation.province}`
+                  : `Localidad / ciudad: ${shippingLocation.locality || shippingLocation.city} · Provincia: ${shippingLocation.province}`}
+              </p>
+              <p className="mt-1 text-[11px] text-neutral-500">
+                Confirmá que es el destino del envío. Ciudad y provincia se completaron en el formulario.
+              </p>
+            </div>
+          )}
           {shippingOptions.map((opt) => (
             <label key={opt.id} className="flex items-center justify-between border p-2 text-sm">
               <span>
