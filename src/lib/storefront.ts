@@ -3,6 +3,7 @@ import type { Where } from 'payload'
 import config from '@payload-config'
 import type { Category, Coupon, Media, Product } from '@/payload-types'
 import type { CatalogCategory, CatalogCoupon, CatalogProduct, ProductVariant } from '@/data/catalog'
+import { SEED_CATEGORIES } from '@/data/seed-catalog'
 
 function mediaUrl(file: number | Media | null | undefined): string | null {
   if (!file || typeof file === 'number') return null
@@ -72,13 +73,24 @@ export async function getStoreCategories(): Promise<CatalogCategory[]> {
     const result = await payload.find({
       collection: 'categories',
       limit: 100,
-      sort: 'sort',
+      depth: 0,
+      overrideAccess: true,
     })
-    return result.docs.map(mapCategory)
+    const mapped = result.docs.map(mapCategory)
+    if (mapped.length) {
+      return mapped.sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+    }
   } catch (error) {
     console.error('No se pudieron leer categorías de Payload:', error)
-    return []
   }
+  return SEED_CATEGORIES.map((c) => ({
+    slug: c.slug,
+    title: c.title,
+    image: c.imageUrl,
+    menuGroup: c.menuGroup,
+    sort: c.sort,
+    showOnHome: true,
+  }))
 }
 
 export async function getStoreProducts(params?: {

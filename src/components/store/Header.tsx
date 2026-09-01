@@ -86,28 +86,85 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
     </button>
   )
 
+  const megaPanel =
+    mega && (
+      <div className="absolute left-1/2 top-full z-50 w-[min(920px,calc(100vw-2rem))] -translate-x-1/2 pt-4">
+        <div className="border border-neutral-200 bg-white p-8 shadow-xl">
+          <div
+            className="grid gap-8 text-left"
+            style={{ gridTemplateColumns: `repeat(${Math.max(megaMenu.length, 1)}, minmax(0, 1fr))` }}
+          >
+            {megaMenu.map((col) => (
+              <div key={col.title}>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-kap-green">{col.title}</p>
+                <ul className="space-y-2 normal-case tracking-normal">
+                  {col.links.map((l) => (
+                    <li key={l.href + l.label}>
+                      <Link
+                        href={l.href}
+                        className="text-xs text-neutral-700 hover:text-black"
+                        onClick={() => setMega(false)}
+                      >
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+
+  const desktopNav = (
+    <nav className="hidden min-w-0 items-center justify-center gap-5 text-[11px] font-medium uppercase tracking-nav md:flex lg:gap-8">
+      <Link href="/" className="hover:opacity-60">
+        Inicio
+      </Link>
+      <div className="relative" onMouseEnter={openMega} onMouseLeave={closeMega}>
+        <Link href="/productos" className="inline-block hover:opacity-60">
+          Productos
+        </Link>
+        {megaPanel}
+      </div>
+      <Link href="/contacto" className="hover:opacity-60">
+        Contacto
+      </Link>
+      <Link href="/politica-de-devolucion" className="hover:opacity-60">
+        Política de Devolución
+      </Link>
+      <Link href="/puntos-de-beneficio" className="hover:opacity-60">
+        Club Kaprichos
+      </Link>
+    </nav>
+  )
+
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white">
       {HEADER_LAYOUT === 'classic' ? (
-        <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-4">
-          <div className="flex items-center gap-3">
-            {menuButton}
-            {searchForm(
-              'hidden items-center gap-2 md:flex',
-              'w-36 border-0 border-b border-neutral-400 bg-transparent py-1 text-sm outline-none focus:border-black',
-            )}
+        <>
+          <div className="mx-auto grid max-w-6xl grid-cols-3 items-center px-4 py-4">
+            <div className="flex items-center gap-3">
+              {menuButton}
+              {searchForm(
+                'hidden items-center gap-2 md:flex',
+                'w-36 border-0 border-b border-neutral-400 bg-transparent py-1 text-sm outline-none focus:border-black',
+              )}
+            </div>
+            <Link href="/" className="justify-self-center">
+              <img
+                src="/logo-kaprichos.webp"
+                alt="Kaprichos Tienda"
+                className="h-16 w-16 rounded-full object-cover md:h-20 md:w-20"
+              />
+            </Link>
+            <div className="justify-self-end">{accountAndCart}</div>
           </div>
-          <Link href="/" className="justify-self-center">
-            <img
-              src="/logo-kaprichos.webp"
-              alt="Kaprichos Tienda"
-              className="h-16 w-16 rounded-full object-cover md:h-20 md:w-20"
-            />
-          </Link>
-          <div className="justify-self-end">{accountAndCart}</div>
-        </div>
+          <div className="hidden pb-4 md:flex md:justify-center">{desktopNav}</div>
+        </>
       ) : (
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:grid md:grid-cols-[auto_minmax(0,1fr)_auto]">
           <div className="flex items-center gap-3">
             {menuButton}
             <Link href="/" className="shrink-0">
@@ -118,6 +175,7 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
               />
             </Link>
           </div>
+          {desktopNav}
           <div className="flex flex-col items-end gap-2">
             {accountAndCart}
             {searchForm(
@@ -127,52 +185,6 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
           </div>
         </div>
       )}
-
-      <nav className="hidden justify-center gap-8 pb-4 text-[11px] font-medium uppercase tracking-nav md:flex">
-        <Link href="/" className="hover:opacity-60">
-          Inicio
-        </Link>
-        <div className="relative" onMouseEnter={openMega} onMouseLeave={closeMega}>
-          <Link href="/productos" className="inline-block hover:opacity-60">
-            Productos
-          </Link>
-          {mega && (
-            <div className="absolute left-1/2 top-full z-50 w-[720px] -translate-x-1/2 pt-4">
-              <div className="border border-neutral-200 bg-white p-8 shadow-xl">
-                <div className="grid grid-cols-4 gap-6 text-left">
-                  {megaMenu.map((col) => (
-                    <div key={col.title}>
-                      <p className="mb-3 text-[10px] font-semibold text-kap-green">{col.title}</p>
-                      <ul className="space-y-2 normal-case tracking-normal">
-                        {col.links.map((l) => (
-                          <li key={l.href}>
-                            <Link
-                              href={l.href}
-                              className="text-xs text-neutral-700 hover:text-black"
-                              onClick={() => setMega(false)}
-                            >
-                              {l.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        <Link href="/contacto" className="hover:opacity-60">
-          Contacto
-        </Link>
-        <Link href="/politica-de-devolucion" className="hover:opacity-60">
-          Política de Devolución
-        </Link>
-        <Link href="/puntos-de-beneficio" className="hover:opacity-60">
-          Club Kaprichos
-        </Link>
-      </nav>
 
       {menuOpen && (
         <div className="space-y-4 border-t px-4 py-5 md:hidden">
