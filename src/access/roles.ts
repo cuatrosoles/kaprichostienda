@@ -1,4 +1,4 @@
-import type { Access, FieldAccess, PayloadRequest } from 'payload'
+import type { Access, PayloadRequest } from 'payload'
 
 export function isAdminUser(user: PayloadRequest['user'] | null | undefined): boolean {
   if (!user) return false
@@ -8,9 +8,6 @@ export function isAdminUser(user: PayloadRequest['user'] | null | undefined): bo
 }
 
 export const adminOnly: Access = ({ req }) => isAdminUser(req.user)
-
-/** Lectura y escritura de campos sensibles: solo cuentas del panel. */
-export const adminFieldAccess: FieldAccess = ({ req }) => isAdminUser(req.user)
 
 export const adminOrSelfCustomer: Access = ({ req }) => {
   if (isAdminUser(req.user)) return true

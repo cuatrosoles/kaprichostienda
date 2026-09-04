@@ -19,6 +19,7 @@ export const Customers: CollectionConfig = {
     description: 'Cuentas de clientes de la tienda (registro, inicio de sesión y puntos). No acceden al panel.',
   },
   auth: {
+    useSessions: false,
     tokenExpiration: 60 * 60 * 24 * 14,
     maxLoginAttempts: 5,
     lockTime: 15 * 60 * 1000,

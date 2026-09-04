@@ -12,7 +12,15 @@ export const Users: CollectionConfig = {
     description: 'Cuentas con acceso al panel de control. No son clientes de la tienda.',
     defaultColumns: ['email', 'name'],
   },
-  auth: true,
+  auth: {
+    // En Vercel (serverless) las sesiones de Payload 3 invalidan el JWT al guardar y tiran 403.
+    useSessions: false,
+    tokenExpiration: 60 * 60 * 24 * 14,
+    cookies: {
+      sameSite: 'Lax',
+      secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+    },
+  },
   fields: [
     {
       name: 'name',

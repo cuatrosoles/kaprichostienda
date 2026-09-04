@@ -4,6 +4,7 @@ import { adminOnly } from '@/access/roles'
 export const HomeHero: GlobalConfig = {
   slug: 'home-hero',
   label: 'Hero de inicio',
+  lockDocuments: false,
   admin: {
     group: 'Configuración de la tienda',
     description: 'Carrusel de la portada: imágenes, textos, botones y transiciones.',
