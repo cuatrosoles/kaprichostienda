@@ -9,6 +9,7 @@ export type ProductVariant = {
 export type CatalogProduct = {
   id: string
   slug: string
+  sku?: string
   title: string
   price: number
   category: string

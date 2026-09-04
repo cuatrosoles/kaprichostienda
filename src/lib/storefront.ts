@@ -34,10 +34,13 @@ export function mapCategory(doc: Category): CatalogCategory {
 export function mapProduct(doc: Product): CatalogProduct {
   const category =
     typeof doc.category === 'object' && doc.category ? doc.category.slug : ''
-  const fromUploads = (doc.images || [])
+  const mainUpload = mediaUrl(doc.image)
+  const gallery = (doc.images || [])
     .map((img) => mediaUrl(img))
     .filter((url): url is string => Boolean(url))
-  const image = doc.imageUrl || fromUploads[0] || '/catalog/prod-remera.jpg'
+    .slice(0, 4)
+  const image = mainUpload || doc.imageUrl || gallery[0] || '/catalog/prod-remera.jpg'
+  const images = [image, ...gallery.filter((url) => url !== image)]
   const variants: ProductVariant[] = (doc.variants || []).map((v) => ({
     sku: v.sku,
     size: v.size,
@@ -48,12 +51,13 @@ export function mapProduct(doc: Product): CatalogProduct {
 
   return {
     id: String(doc.id),
-    slug: doc.slug,
+    slug: doc.slug || '',
+    sku: doc.sku ?? '',
     title: doc.title,
     price: Number(doc.price),
     category,
     image,
-    images: fromUploads.length ? fromUploads : [image],
+    images,
     isNew: Boolean(doc.isNew),
     onSale: Boolean(doc.onSale),
     featured: Boolean(doc.featured),

@@ -5,9 +5,9 @@ const secretRead = ({ req }: { req: PayloadRequest }) => isAdminUser(req.user)
 
 export const StoreSettings: GlobalConfig = {
   slug: 'store-settings',
-  label: 'Configuración de la tienda',
+  label: 'Ajustes generales',
   admin: {
-    group: 'Tienda',
+    group: 'Configuración de la tienda',
     description: 'Inicio de sesión, registro, captcha y correo de la tienda pública.',
   },
   access: {

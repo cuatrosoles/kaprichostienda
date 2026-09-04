@@ -88,7 +88,11 @@ for (const product of SEED_PRODUCTS) {
     title: product.title,
     description: product.description,
     price: product.price,
+    sku: product.sku,
     category: categoryId,
+    mainCategory: SEED_CATEGORIES.find((c) => c.slug === product.category)?.parent
+      ? categoryIds[SEED_CATEGORIES.find((c) => c.slug === product.category).parent]
+      : undefined,
     imageUrl: product.imageUrl,
     isNew: Boolean(product.isNew),
     onSale: Boolean(product.onSale),

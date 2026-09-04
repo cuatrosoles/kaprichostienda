@@ -5,7 +5,7 @@ export const HomeHero: GlobalConfig = {
   slug: 'home-hero',
   label: 'Hero de inicio',
   admin: {
-    group: 'Tienda',
+    group: 'Configuración de la tienda',
     description: 'Carrusel de la portada: imágenes, textos, botones y transiciones.',
   },
   access: {

@@ -254,14 +254,32 @@ export interface Category {
 export interface Product {
   id: number;
   title: string;
-  slug: string;
+  /**
+   * Se genera solo a partir del nombre al guardar.
+   */
+  slug?: string | null;
+  /**
+   * Si lo dejás vacío, se genera a partir del nombre al guardar.
+   */
+  sku?: string | null;
   description?: string | null;
   price: number;
   /**
-   * Preferí la subcategoría (ej. Mujer → Pantalones) para que el filtro del menú coincida.
+   * Mujer, Hombre, Niños, etc. Al elegirla aparecen las subcategorías.
+   */
+  mainCategory?: (number | null) | Category;
+  /**
+   * Se listan solo las de la categoría elegida arriba.
    */
   category?: (number | null) | Category;
+  image?: (number | null) | Media;
+  /**
+   * Opcional si ya subiste la imagen principal. Ej: /catalog/prod-remera.jpg
+   */
   imageUrl?: string | null;
+  /**
+   * Fotos extra. La tienda muestra la principal y estas como miniaturas.
+   */
   images?: (number | Media)[] | null;
   isNew?: boolean | null;
   onSale?: boolean | null;
@@ -567,9 +585,12 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  sku?: T;
   description?: T;
   price?: T;
+  mainCategory?: T;
   category?: T;
+  image?: T;
   imageUrl?: T;
   images?: T;
   isNew?: T;

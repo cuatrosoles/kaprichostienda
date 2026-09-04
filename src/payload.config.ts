@@ -89,11 +89,13 @@ export default buildConfig({
         },
       ],
     },
+    theme: 'dark',
     components: {
       graphics: {
         Logo: '/graphics/Logo',
         Icon: '/graphics/Icon',
       },
+      providers: ['/graphics/AdminDefaults'],
     },
   },
   collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],

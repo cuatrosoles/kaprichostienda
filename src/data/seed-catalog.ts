@@ -18,6 +18,7 @@ export type SeedCategory = {
 export type SeedProduct = {
   slug: string
   title: string
+  sku: string
   price: number
   category: string
   imageUrl: string
@@ -132,6 +133,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'sweater-premium-nuez',
     title: 'Sweater Premium Nuez',
+    sku: 'KAP-SWEATERNUEZ',
     price: 48900,
     category: 'mujer-tejidos',
     imageUrl: '/catalog/prod-sweater.jpg',
@@ -149,6 +151,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'buzo-oversize-terracota',
     title: 'Buzo Oversize Terracota',
+    sku: 'KAP-BUZOTERRAC',
     price: 39900,
     category: 'hombre-buzos',
     imageUrl: '/catalog/prod-buzo.jpg',
@@ -164,6 +167,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'campera-puffer-espresso',
     title: 'Campera Puffer Espresso',
+    sku: 'KAP-CAMPERAESPR',
     price: 98900,
     category: 'hombre-camperas',
     imageUrl: '/catalog/prod-campera.jpg',
@@ -183,6 +187,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'camisa-oxford-blanca',
     title: 'Camisa Oxford Blanca',
+    sku: 'KAP-CAMISAOXF',
     price: 32900,
     category: 'mujer-camisas-blusas',
     imageUrl: '/catalog/prod-camisa.jpg',
@@ -197,6 +202,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'remera-essential-negra',
     title: 'Remera Essential Negra',
+    sku: 'KAP-REMERESSEN',
     price: 18900,
     category: 'mujer-remeras-manga-corta',
     imageUrl: '/catalog/prod-remera.jpg',
@@ -216,6 +222,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'musculosa-layer',
     title: 'Musculosa Layer',
+    sku: 'KAP-MUSCULAYER',
     price: 21900,
     category: 'mujer-remeras-manga-corta',
     imageUrl: '/catalog/prod-musculosa.jpg',
@@ -229,6 +236,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'blazer-sastrero-negro',
     title: 'Blazer Sastrero Negro',
+    sku: 'KAP-BLAZERSAS',
     price: 75900,
     category: 'mujer-chalecos',
     imageUrl: '/catalog/prod-sastreria.jpg',
@@ -243,6 +251,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'conjunto-punto-arena',
     title: 'Conjunto de Punto Arena',
+    sku: 'KAP-CONJUNTOAR',
     price: 67900,
     category: 'bebes-conjuntos',
     imageUrl: '/catalog/prod-conjunto.jpg',
@@ -258,6 +267,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'piloto-lana-carbon',
     title: 'Piloto de Lana Carbón',
+    sku: 'KAP-PILOTOCARB',
     price: 112000,
     category: 'mujer-tapados',
     imageUrl: '/catalog/prod-piloto.jpg',
@@ -276,6 +286,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   {
     slug: 'pantalon-sastre-negro',
     title: 'Pantalón Sastre Negro',
+    sku: 'KAP-PANTALONSA',
     price: 42900,
     category: 'mujer-pantalones',
     imageUrl: '/catalog/prod-sastreria.jpg',

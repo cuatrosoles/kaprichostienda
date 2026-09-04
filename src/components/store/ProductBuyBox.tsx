@@ -7,6 +7,8 @@ import { useCart } from '@/context/CartContext'
 
 export default function ProductBuyBox({ product }: { product: CatalogProduct }) {
   const { addItem } = useCart()
+  const gallery = product.images?.length ? product.images : [product.image]
+  const [activeImage, setActiveImage] = useState(gallery[0] || product.image)
   const colors = useMemo(
     () => Array.from(new Map(product.variants.map((v) => [v.color, v])).values()),
     [product],
@@ -21,10 +23,27 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:grid-cols-2">
-      <img src={product.image} alt={product.title} className="w-full rounded-md object-cover" />
+      <div>
+        <img src={activeImage} alt={product.title} className="w-full rounded-md object-cover" />
+        {gallery.length > 1 && (
+          <div className="mt-3 grid grid-cols-5 gap-2">
+            {gallery.map((src) => (
+              <button
+                key={src}
+                type="button"
+                onClick={() => setActiveImage(src)}
+                className={`overflow-hidden rounded-md border ${activeImage === src ? 'border-black' : 'border-transparent'}`}
+              >
+                <img src={src} alt="" className="aspect-square w-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <div>
         <p className="text-[11px] uppercase tracking-nav text-neutral-500">Inicio / Productos / {product.title}</p>
         <h1 className="mt-3 font-display text-4xl">{product.title}</h1>
+        {product.sku && <p className="mt-1 text-xs uppercase tracking-widest text-neutral-500">SKU {product.sku}</p>}
         <p className="mt-3 text-xl">{formatARS(product.price)}</p>
         <p className="mt-1 text-sm font-semibold text-red-600">
           20% OFF {formatARS(cashPrice)} efectivo o transferencia
@@ -67,7 +86,10 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
           </div>
         </div>
 
-        <p className="mt-4 text-xs text-neutral-500">Stock: {variant?.stock ?? 0} · SKU {variant?.sku}</p>
+        <p className="mt-4 text-xs text-neutral-500">
+          Stock: {variant?.stock ?? 0}
+          {variant?.sku ? ` · Variante ${variant.sku}` : ''}
+        </p>
 
         <button
           type="button"

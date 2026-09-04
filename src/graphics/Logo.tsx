@@ -4,13 +4,7 @@ export default function Logo() {
     <img
       src="/logo-kaprichos.webp"
       alt="Kaprichos"
-      style={{
-        display: 'block',
-        height: 96,
-        width: 96,
-        borderRadius: '50%',
-        objectFit: 'cover',
-      }}
+      className="kap-nav-logo"
     />
   )
 }

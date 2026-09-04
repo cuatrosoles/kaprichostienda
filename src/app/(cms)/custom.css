@@ -1,6 +1,109 @@
-/* Estilos personalizados del panel de Payload CMS */
-.login__brand img,
+/* Panel Kaprichos: teal, sidebar abierto, logo en el nav */
+
+html[data-theme='dark'],
+html[data-theme='light'] {
+  --theme-bg: #1a6b65;
+  --theme-input-bg: #0f4c48;
+  --theme-overlay: rgba(8, 32, 30, 0.55);
+  --theme-text: #f4fffd;
+  --theme-elevation-0: #1a6b65;
+  --theme-elevation-50: #165e59;
+  --theme-elevation-100: #134e4a;
+  --theme-elevation-150: #0f433f;
+  --theme-elevation-200: #0c3a37;
+  --theme-elevation-250: #0a3330;
+  --theme-elevation-300: #2a8a83;
+  --theme-elevation-400: #3aa39b;
+  --theme-elevation-500: #5eead4;
+  --theme-elevation-600: #99f6e4;
+  --theme-elevation-700: #ccfbf1;
+  --theme-elevation-800: #e6fffa;
+  --theme-elevation-900: #f0fdfa;
+  --theme-elevation-1000: #ffffff;
+  --theme-border-color: #2a8a83;
+  --theme-success-500: #5eead4;
+  --theme-error-500: #fb7185;
+}
+
+html,
+body,
+.template-default,
+.template-default__wrap,
+.app-header,
+.collection-edit,
+.collection-list,
+.doc-header,
+.dashboard {
+  background: #1a6b65 !important;
+  color: #f4fffd;
+}
+
+.nav,
+aside.nav,
+.nav__wrap,
+.nav__content {
+  background: #0f3d3a !important;
+}
+
+.nav__header,
+.nav__brand {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  padding: 1.25rem 0.75rem 0.5rem !important;
+}
+
+.kap-nav-logo,
 .nav__logotype img,
+.nav__brand img,
 .graphic-logo img {
+  display: block;
+  width: 60% !important;
+  max-width: 60%;
+  height: auto !important;
   border-radius: 50%;
+  object-fit: cover;
+}
+
+.login__brand img {
+  width: 120px !important;
+  height: 120px !important;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Quita el logo chico de la cabecera (junto a / Productos / Crear) */
+.app-header .graphic-icon,
+.app-header .kap-header-icon,
+.app-header__icon,
+.app-header a[href='/admin']:has(img),
+.app-header .thumbnail {
+  display: none !important;
+}
+
+.kap-header-icon {
+  display: none !important;
+}
+
+/* Sidebar abierto: anula el estado colapsado */
+.nav--nav-collapsed,
+.nav.nav--nav-collapsed {
+  width: var(--nav-width, 275px) !important;
+  min-width: var(--nav-width, 275px) !important;
+}
+
+.template-default--nav-collapsed {
+  grid-template-columns: var(--nav-width, 275px) minmax(0, 1fr) !important;
+}
+
+.nav__link,
+.nav__group-label,
+.nav .nav-group__label {
+  color: #e6fffa !important;
+}
+
+.btn--style-primary,
+.btn.btn--style-primary {
+  background: #f4fffd !important;
+  color: #0f3d3a !important;
 }
