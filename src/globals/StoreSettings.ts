@@ -1,7 +1,11 @@
-import type { GlobalConfig, PayloadRequest } from 'payload'
-import { adminOnly, isAdminUser } from '@/access/roles'
+import type { GlobalConfig } from 'payload'
+import { adminFieldAccess, adminOnly } from '@/access/roles'
 
-const secretRead = ({ req }: { req: PayloadRequest }) => isAdminUser(req.user)
+const secretAccess = {
+  read: adminFieldAccess,
+  create: adminFieldAccess,
+  update: adminFieldAccess,
+}
 
 export const StoreSettings: GlobalConfig = {
   slug: 'store-settings',
@@ -93,7 +97,7 @@ export const StoreSettings: GlobalConfig = {
               name: 'captchaSecretKey',
               type: 'text',
               label: 'Clave secreta',
-              access: { read: secretRead },
+              access: secretAccess,
               admin: {
                 description:
                   'Nunca se envía al navegador. También se puede usar TURNSTILE_SECRET_KEY o RECAPTCHA_SECRET_KEY.',
@@ -108,7 +112,7 @@ export const StoreSettings: GlobalConfig = {
               name: 'adminEmail',
               type: 'email',
               label: 'Email de administración',
-              access: { read: secretRead },
+              access: secretAccess,
               admin: {
                 description:
                   'Ahí llegan ventas, registros, mensajes de contacto y alertas de stock bajo.',
@@ -119,28 +123,28 @@ export const StoreSettings: GlobalConfig = {
               type: 'checkbox',
               defaultValue: true,
               label: 'Avisar ventas (pedidos cobrados o por transferencia)',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'notifyRegistrations',
               type: 'checkbox',
               defaultValue: true,
               label: 'Avisar registros de clientes',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'notifyContact',
               type: 'checkbox',
               defaultValue: true,
               label: 'Avisar mensajes del formulario de contacto',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'lowStockEnabled',
               type: 'checkbox',
               defaultValue: true,
               label: 'Alertar cuando un producto llegue al stock mínimo',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'lowStockThreshold',
@@ -149,7 +153,7 @@ export const StoreSettings: GlobalConfig = {
               min: 0,
               max: 9999,
               label: 'Cantidad mínima de unidades',
-              access: { read: secretRead },
+              access: secretAccess,
               admin: {
                 description:
                   'Si el stock total del producto (suma de variantes) pasa de estar por encima de este número a igual o menor, se envía el email.',
@@ -177,26 +181,26 @@ export const StoreSettings: GlobalConfig = {
               name: 'smtpHost',
               type: 'text',
               label: 'Servidor SMTP',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'smtpPort',
               type: 'number',
               defaultValue: 587,
               label: 'Puerto SMTP',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'smtpUser',
               type: 'text',
               label: 'Usuario SMTP',
-              access: { read: secretRead },
+              access: secretAccess,
             },
             {
               name: 'smtpPassword',
               type: 'text',
               label: 'Contraseña SMTP',
-              access: { read: secretRead },
+              access: secretAccess,
             },
           ],
         },
