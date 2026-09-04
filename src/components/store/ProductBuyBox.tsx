@@ -75,7 +75,7 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
           <div className="mt-2 flex gap-2">
             {sizes.map((s) => (
               <button
-                key={s.sku}
+                key={`${s.color}-${s.size}`}
                 type="button"
                 onClick={() => setSize(s.size)}
                 className={`min-w-10 border px-3 py-2 text-sm ${ (size || sizes[0]?.size) === s.size ? 'bg-black text-white' : ''}`}

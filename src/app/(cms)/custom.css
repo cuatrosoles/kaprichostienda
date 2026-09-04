@@ -120,3 +120,55 @@ aside.nav,
   background: #9d174d !important;
   color: #ffffff !important;
 }
+
+.kap-color-field__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.kap-color-field__picker {
+  display: block;
+  width: 88px;
+  height: 88px;
+  overflow: hidden;
+  border: 2px solid #be185d;
+  border-radius: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.kap-color-field__picker input[type='color'] {
+  display: block;
+  width: 110px;
+  height: 110px;
+  margin: -11px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.kap-color-field__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.kap-color-field__swatch {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.kap-color-field__swatch.is-selected {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #be185d;
+}
+
+.kap-color-field .field-description {
+  margin-top: 0.4rem;
+}

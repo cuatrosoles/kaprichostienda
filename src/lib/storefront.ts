@@ -39,10 +39,10 @@ export function mapProduct(doc: Product): CatalogProduct {
     .map((img) => mediaUrl(img))
     .filter((url): url is string => Boolean(url))
     .slice(0, 4)
-  const image = mainUpload || doc.imageUrl || gallery[0] || '/catalog/prod-remera.jpg'
+  const image = mainUpload || gallery[0] || '/catalog/prod-remera.jpg'
   const images = [image, ...gallery.filter((url) => url !== image)]
   const variants: ProductVariant[] = (doc.variants || []).map((v) => ({
-    sku: v.sku,
+    sku: v.sku || '',
     size: v.size,
     color: v.color,
     colorHex: v.colorHex || '#111111',

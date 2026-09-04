@@ -13,6 +13,16 @@ export const Media: CollectionConfig = {
   access: {
     read: () => true,
   },
+  hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (data && (data.alt == null || data.alt === undefined)) {
+          data.alt = ''
+        }
+        return data
+      },
+    ],
+  },
   upload: {
     disableLocalStorage: true,
     imageSizes: [
@@ -23,6 +33,14 @@ export const Media: CollectionConfig = {
     mimeTypes: ['image/*'],
   },
   fields: [
-    { name: 'alt', type: 'text', required: true, label: 'Texto alternativo (SEO)' },
+    {
+      name: 'alt',
+      type: 'text',
+      required: false,
+      label: 'Texto alternativo (SEO)',
+      admin: {
+        description: 'Opcional. Si lo dejás vacío, no pasa nada.',
+      },
+    },
   ],
 }

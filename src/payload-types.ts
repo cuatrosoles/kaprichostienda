@@ -170,13 +170,6 @@ export interface User {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
   password?: string | null;
   collection: 'users';
 }
@@ -188,7 +181,10 @@ export interface User {
  */
 export interface Media {
   id: number;
-  alt: string;
+  /**
+   * Opcional. Si lo dejás vacío, no pasa nada.
+   */
+  alt?: string | null;
   prefix?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -274,10 +270,6 @@ export interface Product {
   category?: (number | null) | Category;
   image?: (number | null) | Media;
   /**
-   * Opcional si ya subiste la imagen principal. Ej: /catalog/prod-remera.jpg
-   */
-  imageUrl?: string | null;
-  /**
    * Fotos extra. La tienda muestra la principal y estas como miniaturas.
    */
   images?: (number | Media)[] | null;
@@ -288,9 +280,18 @@ export interface Product {
   weight: number;
   variants?:
     | {
-        sku: string;
+        /**
+         * Se completa solo al guardar: SKU del producto + 1, 2, 3…
+         */
+        sku?: string | null;
         size: string;
+        /**
+         * Ej: Negro, Rojo, Crudo
+         */
         color: string;
+        /**
+         * Tocá el cuadro grande para abrir todos los colores, o un circulito rápido. Ese color se ve en la tienda.
+         */
         colorHex?: string | null;
         stock: number;
         id?: string | null;
@@ -382,13 +383,6 @@ export interface Customer {
   hash?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
   password?: string | null;
   collection: 'customers';
 }
@@ -511,13 +505,6 @@ export interface UsersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -591,7 +578,6 @@ export interface ProductsSelect<T extends boolean = true> {
   mainCategory?: T;
   category?: T;
   image?: T;
-  imageUrl?: T;
   images?: T;
   isNew?: T;
   onSale?: T;
@@ -687,13 +673,6 @@ export interface CustomersSelect<T extends boolean = true> {
   hash?: T;
   loginAttempts?: T;
   lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

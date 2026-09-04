@@ -1,5 +1,5 @@
 import type { CollectionConfig, Where } from 'payload'
-import { skuFromTitle, slugifyTitle } from '@/lib/productMeta'
+import { assignVariantSkus, skuFromTitle, slugifyTitle } from '@/lib/productMeta'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -44,6 +44,17 @@ export const Products: CollectionConfig = {
               ? `${candidate}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`
               : candidate
           }
+        }
+
+        if (Array.isArray(data.variants)) {
+          const previous = (originalDoc?.variants || []) as Array<{ id?: string; sku?: string | null }>
+          data.variants = data.variants.map((variant, index) => {
+            if (variant.sku) return variant
+            const sameRow = variant.id ? previous.find((row) => row.id === variant.id) : undefined
+            const inherited = sameRow?.sku || previous[index]?.sku
+            return inherited ? { ...variant, sku: inherited } : variant
+          })
+          data.variants = assignVariantSkus(String(data.sku || originalDoc?.sku || ''), data.variants)
         }
 
         const subId = typeof data.category === 'object' && data.category ? data.category.id : data.category
@@ -133,14 +144,6 @@ export const Products: CollectionConfig = {
       label: 'Imagen principal',
     },
     {
-      name: 'imageUrl',
-      type: 'text',
-      label: 'Imagen principal (URL de respaldo)',
-      admin: {
-        description: 'Opcional si ya subiste la imagen principal. Ej: /catalog/prod-remera.jpg',
-      },
-    },
-    {
       name: 'images',
       type: 'upload',
       relationTo: 'media',
@@ -178,10 +181,35 @@ export const Products: CollectionConfig = {
       labels: { singular: 'Variante', plural: 'Variantes' },
       label: 'Variantes (talle y color)',
       fields: [
-        { name: 'sku', type: 'text', required: true, label: 'SKU de variante' },
+        {
+          name: 'sku',
+          type: 'text',
+          label: 'SKU de variante',
+          admin: {
+            readOnly: true,
+            description: 'Se completa solo al guardar: SKU del producto + 1, 2, 3…',
+          },
+        },
         { name: 'size', type: 'text', required: true, label: 'Talle' },
-        { name: 'color', type: 'text', required: true, label: 'Color' },
-        { name: 'colorHex', type: 'text', label: 'Color hexadecimal' },
+        {
+          name: 'color',
+          type: 'text',
+          required: true,
+          label: 'Nombre del color',
+          admin: { description: 'Ej: Negro, Rojo, Crudo' },
+        },
+        {
+          name: 'colorHex',
+          type: 'text',
+          defaultValue: '#111111',
+          label: 'Color',
+          admin: {
+            description: 'Tocá el cuadro grande para abrir todos los colores, o un circulito rápido. Ese color se ve en la tienda.',
+            components: {
+              Field: '/fields/ColorPicker',
+            },
+          },
+        },
         { name: 'stock', type: 'number', required: true, min: 0, defaultValue: 0, label: 'Stock' },
       ],
     },

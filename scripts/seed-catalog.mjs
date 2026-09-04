@@ -93,10 +93,9 @@ for (const product of SEED_PRODUCTS) {
     mainCategory: SEED_CATEGORIES.find((c) => c.slug === product.category)?.parent
       ? categoryIds[SEED_CATEGORIES.find((c) => c.slug === product.category).parent]
       : undefined,
-    imageUrl: product.imageUrl,
+    featured: Boolean(product.featured),
     isNew: Boolean(product.isNew),
     onSale: Boolean(product.onSale),
-    featured: Boolean(product.featured),
     status: 'published',
     weight: product.weight,
     variants: product.variants,
