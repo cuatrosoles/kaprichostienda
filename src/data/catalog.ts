@@ -27,6 +27,7 @@ export type CatalogCategory = {
   title: string
   image: string
   description?: string
+  parentSlug?: string
   menuGroup?: string
   sort?: number
   showOnHome?: boolean
@@ -86,12 +87,15 @@ export const ANNOUNCEMENTS = [
   'Club Kaprichos: sumá puntos en cada compra',
 ]
 
-export const MEGA_MENU_GROUPS = [
-  { id: 'destacados', title: 'Destacados' },
-  { id: 'remeras', title: 'Remeras y camisas' },
-  { id: 'abrigo', title: 'Abrigo' },
-  { id: 'total', title: 'Total look' },
-] as const
+export function topLevelCategories(categories: CatalogCategory[]) {
+  return categories.filter((c) => !c.parentSlug).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+}
+
+export function childCategories(categories: CatalogCategory[], parentSlug: string) {
+  return categories
+    .filter((c) => c.parentSlug === parentSlug)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
+}
 
 export const CASH_DISCOUNT = 0.2
 export const MIN_PURCHASE = 50000
@@ -124,42 +128,14 @@ export function filterProducts(
 }
 
 export function buildMegaMenu(categories: CatalogCategory[]) {
-  const groupIds = new Set<string>(MEGA_MENU_GROUPS.map((g) => g.id))
-  const sorted = [...categories].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-
-  const normalizeGroup = (value?: string) => {
-    if (!value) return undefined
-    const raw = value.trim()
-    if (groupIds.has(raw)) return raw
-    const byTitle = MEGA_MENU_GROUPS.find((g) => g.title.toLowerCase() === raw.toLowerCase())
-    return byTitle?.id
-  }
-
-  const used = new Set<string>()
-  const columns = MEGA_MENU_GROUPS.map((group) => {
-    const links = sorted
-      .filter((c) => normalizeGroup(c.menuGroup) === group.id)
-      .map((c) => {
-        used.add(c.slug)
-        return { label: c.title, href: `/productos?categoria=${c.slug}` }
-      })
-    if (group.id === 'destacados') {
-      links.unshift(
-        { label: 'Nuevos ingresos', href: '/productos?novedad=1' },
-        { label: 'Rebajas', href: '/productos?oferta=1' },
-      )
-    }
-    return { title: group.title, links }
-  })
-
-  const leftover = sorted
-    .filter((c) => !used.has(c.slug))
-    .map((c) => ({ label: c.title, href: `/productos?categoria=${c.slug}` }))
-  if (leftover.length) {
-    columns[0].links.push(...leftover)
-  }
-
-  return columns.filter((col) => col.links.length > 0)
+  return topLevelCategories(categories).map((parent) => ({
+    title: parent.title,
+    href: `/productos?categoria=${parent.slug}`,
+    links: childCategories(categories, parent.slug).map((c) => ({
+      label: c.title,
+      href: `/productos?categoria=${c.slug}`,
+    })),
+  }))
 }
 
 export function formatARS(value: number) {

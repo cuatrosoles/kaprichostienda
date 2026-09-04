@@ -1,17 +1,18 @@
 import Link from 'next/link'
-import type { CatalogCategory } from '@/data/catalog'
+import { topLevelCategories, type CatalogCategory } from '@/data/catalog'
 
 export default function Footer({ categories }: { categories: CatalogCategory[] }) {
+  const mains = topLevelCategories(categories)
   return (
     <footer className="mt-16 border-t bg-white">
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-4">
         <div>
           <img src="/logo-kaprichos.webp" alt="Kaprichos" className="h-16 w-16 rounded-full object-cover" />
           <div className="mt-4 flex gap-3 text-sm">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer">
+            <a href="https://www.instagram.com/_kapricho.s" target="_blank" rel="noreferrer">
               Instagram
             </a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer">
+            <a href="https://www.facebook.com/share/1MEbavPFv5/" target="_blank" rel="noreferrer">
               Facebook
             </a>
           </div>
@@ -19,7 +20,7 @@ export default function Footer({ categories }: { categories: CatalogCategory[] }
         <div>
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-nav">Categorías</h3>
           <ul className="space-y-2 text-sm text-neutral-600">
-            {categories.slice(0, 7).map((c) => (
+            {mains.map((c) => (
               <li key={c.slug}>
                 <Link href={`/productos?categoria=${c.slug}`}>{c.title}</Link>
               </li>
@@ -29,8 +30,9 @@ export default function Footer({ categories }: { categories: CatalogCategory[] }
         <div>
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-nav">Contactanos</h3>
           <ul className="space-y-2 text-sm text-neutral-600">
-            <li>WhatsApp: +54 11 5555-0101</li>
-            <li>info@kaprichos.com.ar</li>
+            <li>WhatsApp: +54 2477 59-0742</li>
+            <li>maralga2008@yahoo.com.ar</li>
+            <li>C. Eduardo T. Silva 2096, Pergamino</li>
             <li>Buenos Aires, Argentina</li>
             <li>
               <Link href="/contacto">Escribinos</Link>

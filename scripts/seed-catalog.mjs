@@ -18,7 +18,7 @@ process.env.NODE_ENV = 'development'
 
 const { getPayload } = await import('payload')
 const { default: config } = await import(pathToFileURL(resolve(root, 'src/payload.config.ts')).href)
-const { SEED_CATEGORIES, SEED_COUPONS, SEED_PRODUCTS } = await import(
+const { LEGACY_CATEGORY_SLUGS, SEED_CATEGORIES, SEED_COUPONS, SEED_PRODUCTS } = await import(
   pathToFileURL(resolve(root, 'src/data/seed-catalog.ts')).href
 )
 
@@ -49,17 +49,33 @@ async function upsertBySlug(collection, slug, data) {
 }
 
 const categoryIds = {}
+const parents = SEED_CATEGORIES.filter((c) => !c.parent)
+const children = SEED_CATEGORIES.filter((c) => c.parent)
 
-for (const cat of SEED_CATEGORIES) {
+for (const cat of parents) {
   const id = await upsertBySlug('categories', cat.slug, {
     title: cat.title,
     imageUrl: cat.imageUrl,
-    menuGroup: cat.menuGroup,
     sort: cat.sort,
-    showOnHome: true,
+    showOnHome: cat.showOnHome !== false,
+    parent: null,
   })
   categoryIds[cat.slug] = id
   console.log(`Categoría ${cat.slug} (#${id})`)
+}
+
+for (const cat of children) {
+  const parentId = categoryIds[cat.parent]
+  if (!parentId) throw new Error(`Falta el padre ${cat.parent} para ${cat.slug}`)
+  const id = await upsertBySlug('categories', cat.slug, {
+    title: cat.title,
+    imageUrl: cat.imageUrl,
+    sort: cat.sort,
+    showOnHome: false,
+    parent: parentId,
+  })
+  categoryIds[cat.slug] = id
+  console.log(`Subcategoría ${cat.slug} (#${id})`)
 }
 
 for (const product of SEED_PRODUCTS) {
@@ -83,6 +99,43 @@ for (const product of SEED_PRODUCTS) {
     stock,
   })
   console.log(`Producto ${product.slug} (#${id})`)
+}
+
+const keepSlugs = new Set(SEED_CATEGORIES.map((c) => c.slug))
+const existingCats = await payload.find({
+  collection: 'categories',
+  limit: 200,
+  pagination: false,
+  overrideAccess: true,
+})
+
+for (const doc of existingCats.docs) {
+  if (keepSlugs.has(doc.slug)) continue
+  const mappedSlug = LEGACY_CATEGORY_SLUGS[doc.slug]
+  const fallbackId = mappedSlug ? categoryIds[mappedSlug] : categoryIds.mujer
+  const linked = await payload.find({
+    collection: 'products',
+    where: { category: { equals: doc.id } },
+    limit: 200,
+    pagination: false,
+    overrideAccess: true,
+  })
+  for (const product of linked.docs) {
+    if (fallbackId) {
+      await payload.update({
+        collection: 'products',
+        id: product.id,
+        data: { category: fallbackId },
+        overrideAccess: true,
+      })
+    }
+  }
+  await payload.delete({
+    collection: 'categories',
+    id: doc.id,
+    overrideAccess: true,
+  })
+  console.log(`Categoría legado ${doc.slug} eliminada`)
 }
 
 for (const coupon of SEED_COUPONS) {

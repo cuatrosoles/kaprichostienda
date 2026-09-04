@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useMemo, useRef, useState } from 'react'
-import { buildMegaMenu, type CatalogCategory } from '@/data/catalog'
+import { buildMegaMenu, childCategories, topLevelCategories, type CatalogCategory } from '@/data/catalog'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 
@@ -19,6 +19,7 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
   const megaCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const router = useRouter()
   const megaMenu = useMemo(() => buildMegaMenu(categories), [categories])
+  const navCategories = useMemo(() => topLevelCategories(categories), [categories])
 
   const openMega = () => {
     if (megaCloseTimer.current) {
@@ -162,19 +163,22 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
             onMouseLeave={closeMega}
           >
             <div className="border border-neutral-200 bg-white p-8 shadow-xl">
-              <div
-                className="grid gap-8 text-left"
-                style={{ gridTemplateColumns: `repeat(${Math.max(megaMenu.length, 1)}, minmax(0, 1fr))` }}
-              >
+              <div className="grid grid-cols-2 gap-x-10 gap-y-8 text-left md:grid-cols-3">
                 {megaMenu.map((col) => (
                   <div key={col.title}>
-                    <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-kap-green">{col.title}</p>
-                    <ul className="space-y-2 normal-case tracking-normal">
+                    <Link
+                      href={col.href}
+                      className="mb-3 block text-sm font-semibold uppercase tracking-widest text-kap-green hover:opacity-70"
+                      onClick={() => setMega(false)}
+                    >
+                      {col.title}
+                    </Link>
+                    <ul className="space-y-1.5 normal-case tracking-normal">
                       {col.links.map((l) => (
                         <li key={l.href + l.label}>
                           <Link
                             href={l.href}
-                            className="text-xs text-neutral-700 hover:text-black"
+                            className="font-display text-sm italic text-[#c45c26] hover:opacity-70"
                             onClick={() => setMega(false)}
                           >
                             {l.label}
@@ -206,15 +210,26 @@ export default function Header({ categories }: { categories: CatalogCategory[] }
           <Link href="/productos" className="block text-sm uppercase tracking-nav" onClick={() => setMenuOpen(false)}>
             Productos
           </Link>
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              href={`/productos?categoria=${c.slug}`}
-              className="block pl-3 text-sm text-neutral-600"
-              onClick={() => setMenuOpen(false)}
-            >
-              {c.title}
-            </Link>
+          {navCategories.map((parent) => (
+            <div key={parent.slug} className="space-y-1">
+              <Link
+                href={`/productos?categoria=${parent.slug}`}
+                className="block text-sm font-semibold uppercase tracking-nav text-kap-green"
+                onClick={() => setMenuOpen(false)}
+              >
+                {parent.title}
+              </Link>
+              {childCategories(categories, parent.slug).map((child) => (
+                <Link
+                  key={child.slug}
+                  href={`/productos?categoria=${child.slug}`}
+                  className="block pl-3 font-display text-sm italic text-[#c45c26]"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {child.title}
+                </Link>
+              ))}
+            </div>
           ))}
           <Link href="/contacto" className="block text-sm uppercase tracking-nav" onClick={() => setMenuOpen(false)}>
             Contacto

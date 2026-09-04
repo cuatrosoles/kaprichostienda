@@ -221,7 +221,7 @@ export interface Media {
   };
 }
 /**
- * Categorías del catálogo y del mega menú.
+ * Categorías (Mujer, Hombre…) y subcategorías (Pantalones, Remeras…).
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories".
@@ -230,10 +230,17 @@ export interface Category {
   id: number;
   title: string;
   slug: string;
+  /**
+   * Vacío = categoría principal (Mujer, Hombre, Ofertas…). Si es subcategoría, elegí el padre.
+   */
+  parent?: (number | null) | Category;
   imageUrl?: string | null;
   description?: string | null;
   menuGroup?: ('destacados' | 'remeras' | 'abrigo' | 'total') | null;
   sort?: number | null;
+  /**
+   * Solo tiene sentido en categorías principales.
+   */
   showOnHome?: boolean | null;
   updatedAt: string;
   createdAt: string;
@@ -250,6 +257,9 @@ export interface Product {
   slug: string;
   description?: string | null;
   price: number;
+  /**
+   * Preferí la subcategoría (ej. Mujer → Pantalones) para que el filtro del menú coincida.
+   */
   category?: (number | null) | Category;
   imageUrl?: string | null;
   images?: (number | Media)[] | null;
@@ -541,6 +551,7 @@ export interface MediaSelect<T extends boolean = true> {
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
   slug?: T;
+  parent?: T;
   imageUrl?: T;
   description?: T;
   menuGroup?: T;

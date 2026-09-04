@@ -20,7 +20,15 @@ export const Products: CollectionConfig = {
     { name: 'slug', type: 'text', required: true, unique: true, label: 'Slug (URL)' },
     { name: 'description', type: 'textarea', label: 'Descripción' },
     { name: 'price', type: 'number', required: true, label: 'Precio (ARS)' },
-    { name: 'category', type: 'relationship', relationTo: 'categories', label: 'Categoría' },
+    {
+      name: 'category',
+      type: 'relationship',
+      relationTo: 'categories',
+      label: 'Categoría / subcategoría',
+      admin: {
+        description: 'Preferí la subcategoría (ej. Mujer → Pantalones) para que el filtro del menú coincida.',
+      },
+    },
     { name: 'imageUrl', type: 'text', label: 'Imagen principal (URL o /catalog/...)' },
     {
       name: 'images',

@@ -9,19 +9,33 @@ export const Categories: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: 'Tienda',
-    defaultColumns: ['title', 'slug', 'menuGroup', 'sort'],
-    description: 'Categorías del catálogo y del mega menú.',
+    defaultColumns: ['title', 'slug', 'parent', 'sort'],
+    description: 'Categorías (Mujer, Hombre…) y subcategorías (Pantalones, Remeras…).',
   },
   access: { read: () => true },
   fields: [
     { name: 'title', type: 'text', required: true, label: 'Nombre' },
     { name: 'slug', type: 'text', required: true, unique: true, label: 'Slug (URL)' },
+    {
+      name: 'parent',
+      type: 'relationship',
+      relationTo: 'categories',
+      label: 'Categoría padre',
+      admin: {
+        description: 'Vacío = categoría principal (Mujer, Hombre, Ofertas…). Si es subcategoría, elegí el padre.',
+      },
+      filterOptions: ({ id }) => ({
+        parent: { exists: false },
+        ...(id ? { id: { not_equals: id } } : {}),
+      }),
+    },
     { name: 'imageUrl', type: 'text', label: 'Imagen (URL o /catalog/...)' },
     { name: 'description', type: 'textarea', label: 'Descripción' },
     {
       name: 'menuGroup',
       type: 'select',
-      label: 'Columna del mega menú',
+      label: 'Columna del mega menú (legado)',
+      admin: { hidden: true },
       options: [
         { label: 'Destacados', value: 'destacados' },
         { label: 'Remeras y camisas', value: 'remeras' },
@@ -30,6 +44,14 @@ export const Categories: CollectionConfig = {
       ],
     },
     { name: 'sort', type: 'number', defaultValue: 0, label: 'Orden' },
-    { name: 'showOnHome', type: 'checkbox', defaultValue: true, label: 'Mostrar en inicio' },
+    {
+      name: 'showOnHome',
+      type: 'checkbox',
+      defaultValue: true,
+      label: 'Mostrar en inicio',
+      admin: {
+        description: 'Solo tiene sentido en categorías principales.',
+      },
+    },
   ],
 }

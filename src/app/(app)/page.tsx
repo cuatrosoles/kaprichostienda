@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import ProductCard from '@/components/store/ProductCard'
 import HeroSlider from '@/components/store/HeroSlider'
+import { topLevelCategories } from '@/data/catalog'
 import { getHomeHero, getStoreCategories, getStoreProducts } from '@/lib/storefront'
 
 export default async function HomePage() {
   const categories = await getStoreCategories()
   const products = await getStoreProducts()
   const hero = await getHomeHero()
-  const homeCategories = categories.filter((c) => c.showOnHome !== false)
+  const homeCategories = topLevelCategories(categories).filter((c) => c.showOnHome !== false)
   const news = products.filter((p) => p.isNew)
   const featured = products.filter((p) => p.featured)
   const showcase = news.length ? news : featured

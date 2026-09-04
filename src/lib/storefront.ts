@@ -12,12 +12,19 @@ function mediaUrl(file: number | Media | null | undefined): string | null {
   return file.sizes?.card?.url || file.url || null
 }
 
+function categoryParentSlug(doc: Category): string | undefined {
+  if (!doc.parent) return undefined
+  if (typeof doc.parent === 'object') return doc.parent.slug || undefined
+  return undefined
+}
+
 export function mapCategory(doc: Category): CatalogCategory {
   return {
     slug: doc.slug,
     title: doc.title,
     image: doc.imageUrl || '/catalog/prod-remera.jpg',
     description: doc.description || undefined,
+    parentSlug: categoryParentSlug(doc),
     menuGroup: doc.menuGroup || undefined,
     sort: doc.sort ?? 0,
     showOnHome: doc.showOnHome !== false,
@@ -75,8 +82,8 @@ const loadStoreCategories = unstable_cache(
       return await withPayload(async (payload) => {
         const result = await payload.find({
           collection: 'categories',
-          limit: 100,
-          depth: 0,
+          limit: 200,
+          depth: 1,
           pagination: false,
           overrideAccess: true,
         })
@@ -100,9 +107,9 @@ function seedCategories(): CatalogCategory[] {
     slug: c.slug,
     title: c.title,
     image: c.imageUrl,
-    menuGroup: c.menuGroup,
+    parentSlug: c.parent,
     sort: c.sort,
-    showOnHome: true,
+    showOnHome: c.showOnHome !== false && !c.parent,
   }))
 }
 
@@ -127,7 +134,15 @@ async function loadStoreProducts(params?: {
           overrideAccess: true,
         })
         if (!cat.docs[0]) return []
-        and.push({ category: { equals: cat.docs[0].id } })
+        const children = await payload.find({
+          collection: 'categories',
+          where: { parent: { equals: cat.docs[0].id } },
+          limit: 100,
+          pagination: false,
+          overrideAccess: true,
+        })
+        const ids = [cat.docs[0].id, ...children.docs.map((doc) => doc.id)]
+        and.push({ category: { in: ids } })
       }
       if (params?.novedad || params?.isNew) and.push({ isNew: { equals: true } })
       if (params?.oferta) and.push({ onSale: { equals: true } })
