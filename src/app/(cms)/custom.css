@@ -5,7 +5,7 @@ html[data-theme='light'] {
   --theme-bg: #fdf2f8;
   --theme-input-bg: #fff7fa;
   --theme-overlay: rgba(157, 23, 77, 0.4);
-  --theme-text: #831843;
+  --theme-text: #000000;
   --theme-elevation-0: #fdf2f8;
   --theme-elevation-50: #fce7ef;
   --theme-elevation-100: #fbcfe8;
@@ -35,7 +35,7 @@ body,
 .doc-header,
 .dashboard {
   background: #fdf2f8 !important;
-  color: #831843;
+  color: #000000;
 }
 
 .nav,
@@ -43,6 +43,7 @@ aside.nav,
 .nav__wrap,
 .nav__content {
   background: #be185d !important;
+  color: #ffffff !important;
 }
 
 .nav__header,
@@ -99,23 +100,23 @@ aside.nav,
 .nav__link,
 .nav__group-label,
 .nav .nav-group__label {
-  color: #fff5f8 !important;
+  color: #ffffff !important;
 }
 
 .nav__link:hover,
 .nav__link:focus {
   background: #9d174d !important;
-  color: #fff7fa !important;
+  color: #ffffff !important;
 }
 
 .btn--style-primary,
 .btn.btn--style-primary {
   background: #be185d !important;
-  color: #fff7fa !important;
+  color: #ffffff !important;
 }
 
 .btn--style-primary:hover,
 .btn.btn--style-primary:hover {
   background: #9d174d !important;
-  color: #fff7fa !important;
+  color: #ffffff !important;
 }
