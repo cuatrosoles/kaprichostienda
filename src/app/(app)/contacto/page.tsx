@@ -4,21 +4,37 @@ import { FormEvent, useState } from 'react'
 
 export default function ContactoPage() {
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
+  const [pending, setPending] = useState(false)
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setError('')
+    setPending(true)
     const form = new FormData(e.currentTarget)
-    await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: form.get('name'),
-        email: form.get('email'),
-        phone: form.get('phone'),
-        message: form.get('message'),
-      }),
-    })
-    setSent(true)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.get('name'),
+          email: form.get('email'),
+          phone: form.get('phone'),
+          message: form.get('message'),
+          website: form.get('website'),
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(data.error || 'No se pudo enviar el mensaje')
+        return
+      }
+      setSent(true)
+    } catch {
+      setError('No se pudo enviar el mensaje')
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -34,6 +50,9 @@ export default function ContactoPage() {
           <p>Lun a Sab 17:00 a 20:00 hs</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-5">
+          <div className="hidden" aria-hidden="true">
+            <input name="website" tabIndex={-1} autoComplete="off" />
+          </div>
           <label className="block text-[11px] uppercase tracking-widest">
             Nombre
             <input name="name" required className="store-input mt-1" />
@@ -50,11 +69,14 @@ export default function ContactoPage() {
             Mensaje
             <textarea name="message" required rows={5} className="store-input mt-1" />
           </label>
+          {error && (
+            <p className="bg-red-800 px-4 py-3 text-sm text-white">{error}</p>
+          )}
           {sent && (
             <p className="bg-neutral-800 px-4 py-3 text-sm text-white">¡Operación exitosa!</p>
           )}
-          <button type="submit" className="store-btn">
-            Enviar
+          <button type="submit" className="store-btn" disabled={pending || sent}>
+            {pending ? 'Enviando…' : 'Enviar'}
           </button>
         </form>
       </div>

@@ -65,6 +65,13 @@ export const Products: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [
+      async ({ doc, previousDoc, req, operation }) => {
+        if (operation !== 'update' || !previousDoc) return
+        const { notifyLowStockIfCrossed } = await import('@/lib/adminNotify')
+        await notifyLowStockIfCrossed(req.payload, previousDoc, doc)
+      },
+    ],
   },
   fields: [
     { name: 'title', type: 'text', required: true, label: 'Nombre del producto' },

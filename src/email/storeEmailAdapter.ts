@@ -3,6 +3,7 @@ import type { Payload } from 'payload'
 type EmailMessage = {
   to?: string | string[]
   from?: string
+  replyTo?: string
   subject?: string
   html?: string
   text?: string
@@ -49,7 +50,14 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
         console.info('[Kaprichos] Email sin SMTP — se registra en consola:')
         console.info(
           JSON.stringify(
-            { from, to: message.to, subject: message.subject, text: message.text, html: message.html },
+            {
+              from,
+              to: message.to,
+              replyTo: message.replyTo,
+              subject: message.subject,
+              text: message.text,
+              html: message.html,
+            },
             null,
             2,
           ),
@@ -68,6 +76,7 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
       return transport.sendMail({
         from,
         to: message.to,
+        replyTo: message.replyTo,
         subject: message.subject,
         html: message.html,
         text: message.text,

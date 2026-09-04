@@ -23,6 +23,23 @@ export const Orders: CollectionConfig = {
       return false
     },
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, previousDoc, req, operation }) => {
+        if (operation !== 'update') return
+        if (doc.paymentStatus !== 'approved' || previousDoc?.paymentStatus === 'approved') return
+        const { notifySale } = await import('@/lib/adminNotify')
+        const full = await req.payload.findByID({
+          collection: 'orders',
+          id: doc.id,
+          depth: 1,
+          overrideAccess: true,
+          req,
+        })
+        await notifySale(req.payload, full)
+      },
+    ],
+  },
   fields: [
     {
       name: 'paymentStatus',

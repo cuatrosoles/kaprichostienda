@@ -94,6 +94,9 @@ export async function POST(req: Request) {
     const doc = created.docs[0]
     if (!doc) return jsonError('No se pudo crear la cuenta', 500)
 
+    const { notifyRegistration } = await import('@/lib/adminNotify')
+    await notifyRegistration(payload, { email, name, phone })
+
     if (pub.requireEmailVerification) {
       const token = randomBytes(32).toString('hex')
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()

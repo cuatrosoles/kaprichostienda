@@ -136,6 +136,14 @@ export async function POST(req: Request) {
     }
 
     if (payMethod === 'transfer' || !process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN.includes('XXXXXX')) {
+      const { notifySale } = await import('@/lib/adminNotify')
+      const full = await payload.findByID({
+        collection: 'orders',
+        id: orderRecord.id,
+        depth: 1,
+        overrideAccess: true,
+      })
+      await notifySale(payload, full)
       return NextResponse.json({
         ok: true,
         orderId: orderRecord.id,

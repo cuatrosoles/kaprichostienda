@@ -736,7 +736,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Inicio de sesión, registro, captcha y correo de la tienda pública.
+ * Cuentas, avisos al administrador, captcha y correo SMTP.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "store-settings".
@@ -761,6 +761,18 @@ export interface StoreSetting {
    * Nunca se envía al navegador. También se puede usar TURNSTILE_SECRET_KEY o RECAPTCHA_SECRET_KEY.
    */
   captchaSecretKey?: string | null;
+  /**
+   * Ahí llegan ventas, registros, mensajes de contacto y alertas de stock bajo.
+   */
+  adminEmail?: string | null;
+  notifySales?: boolean | null;
+  notifyRegistrations?: boolean | null;
+  notifyContact?: boolean | null;
+  lowStockEnabled?: boolean | null;
+  /**
+   * Si el stock total del producto (suma de variantes) pasa de estar por encima de este número a igual o menor, se envía el email.
+   */
+  lowStockThreshold?: number | null;
   fromName?: string | null;
   /**
    * Ej: noreply@kaprichos.com.ar
@@ -842,6 +854,12 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   captchaProvider?: T;
   captchaSiteKey?: T;
   captchaSecretKey?: T;
+  adminEmail?: T;
+  notifySales?: T;
+  notifyRegistrations?: T;
+  notifyContact?: T;
+  lowStockEnabled?: T;
+  lowStockThreshold?: T;
   fromName?: T;
   fromAddress?: T;
   smtpHost?: T;
