@@ -1,28 +1,28 @@
-/* Panel Kaprichos: teal, sidebar abierto, logo en el nav */
+/* Panel Kaprichos: rosa claro → rosa fuerte, sidebar abierto, logo en el nav */
 
 html[data-theme='dark'],
 html[data-theme='light'] {
-  --theme-bg: #1a6b65;
-  --theme-input-bg: #0f4c48;
-  --theme-overlay: rgba(8, 32, 30, 0.55);
-  --theme-text: #f4fffd;
-  --theme-elevation-0: #1a6b65;
-  --theme-elevation-50: #165e59;
-  --theme-elevation-100: #134e4a;
-  --theme-elevation-150: #0f433f;
-  --theme-elevation-200: #0c3a37;
-  --theme-elevation-250: #0a3330;
-  --theme-elevation-300: #2a8a83;
-  --theme-elevation-400: #3aa39b;
-  --theme-elevation-500: #5eead4;
-  --theme-elevation-600: #99f6e4;
-  --theme-elevation-700: #ccfbf1;
-  --theme-elevation-800: #e6fffa;
-  --theme-elevation-900: #f0fdfa;
+  --theme-bg: #fdf2f8;
+  --theme-input-bg: #fff7fa;
+  --theme-overlay: rgba(157, 23, 77, 0.4);
+  --theme-text: #831843;
+  --theme-elevation-0: #fdf2f8;
+  --theme-elevation-50: #fce7ef;
+  --theme-elevation-100: #fbcfe8;
+  --theme-elevation-150: #f9a8d4;
+  --theme-elevation-200: #f472b6;
+  --theme-elevation-250: #ec4899;
+  --theme-elevation-300: #db2777;
+  --theme-elevation-400: #be185d;
+  --theme-elevation-500: #9d174d;
+  --theme-elevation-600: #831843;
+  --theme-elevation-700: #6b1239;
+  --theme-elevation-800: #500724;
+  --theme-elevation-900: #3b071a;
   --theme-elevation-1000: #ffffff;
-  --theme-border-color: #2a8a83;
-  --theme-success-500: #5eead4;
-  --theme-error-500: #fb7185;
+  --theme-border-color: #f9a8d4;
+  --theme-success-500: #db2777;
+  --theme-error-500: #e11d48;
 }
 
 html,
@@ -34,15 +34,15 @@ body,
 .collection-list,
 .doc-header,
 .dashboard {
-  background: #f1cb79 !important;
-  color: #f4fffd;
+  background: #fdf2f8 !important;
+  color: #831843;
 }
 
 .nav,
 aside.nav,
 .nav__wrap,
 .nav__content {
-  background: #816d14 !important;
+  background: #be185d !important;
 }
 
 .nav__header,
@@ -99,11 +99,23 @@ aside.nav,
 .nav__link,
 .nav__group-label,
 .nav .nav-group__label {
-  color: #e6fffa !important;
+  color: #fff5f8 !important;
+}
+
+.nav__link:hover,
+.nav__link:focus {
+  background: #9d174d !important;
+  color: #fff7fa !important;
 }
 
 .btn--style-primary,
 .btn.btn--style-primary {
-  background: #f4fffd !important;
-  color: #0f3d3a !important;
+  background: #be185d !important;
+  color: #fff7fa !important;
+}
+
+.btn--style-primary:hover,
+.btn.btn--style-primary:hover {
+  background: #9d174d !important;
+  color: #fff7fa !important;
 }
