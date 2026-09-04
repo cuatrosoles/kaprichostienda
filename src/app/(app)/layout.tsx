@@ -3,6 +3,7 @@ import React from 'react'
 import StoreShell from '@/components/store/StoreShell'
 import { getStoreCategories } from '@/lib/storefront'
 import { getPublicAuthConfig, getStoreCustomer, getStoreSettings } from '@/lib/auth'
+import { getPublicCommerce } from '@/lib/storeCommerce'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -34,11 +35,12 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const user = await getStoreCustomer()
   const categories = await getStoreCategories()
   const authConfig = settings ? getPublicAuthConfig(settings) : fallbackAuth
+  const commerce = settings ? getPublicCommerce(settings) : undefined
 
   return (
     <html lang="es">
       <body className="font-sans antialiased">
-        <StoreShell categories={categories} user={user} authConfig={authConfig}>
+        <StoreShell categories={categories} user={user} authConfig={authConfig} commerce={commerce}>
           {children}
         </StoreShell>
       </body>

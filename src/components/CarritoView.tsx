@@ -3,13 +3,8 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
-import {
-  CASH_DISCOUNT,
-  type CatalogCoupon,
-  formatARS,
-  POINT_VALUE_ARS,
-  POINTS_PER_THOUSAND,
-} from '@/data/catalog'
+import { type CatalogCoupon, formatARS, POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
+import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 import type { PostalLocation } from '@/lib/postalCode'
 
 type ShippingOption = { id: string; name: string; cost: number; eta: string }
@@ -17,6 +12,8 @@ type ShippingOption = { id: string; name: string; cost: number; eta: string }
 export default function CarritoView() {
   const { items, subtotal, updateQty, removeItem, clear } = useCart()
   const { user } = useAuth()
+  const commerce = useCommerce()
+  const cashRate = useCashDiscountRate()
   const [zipCode, setZipCode] = useState('')
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([])
   const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null)
@@ -26,7 +23,14 @@ export default function CarritoView() {
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState<CatalogCoupon | null>(null)
   const [couponError, setCouponError] = useState('')
-  const [payMethod, setPayMethod] = useState<'mp' | 'transfer'>('mp')
+  const [payMethod, setPayMethod] = useState<'mp' | 'transfer'>(commerce.mpEnabled ? 'mp' : 'transfer')
+  const [transferInfo, setTransferInfo] = useState<null | {
+    bank?: string
+    holder?: string
+    cbu?: string
+    alias?: string
+    instructions?: string
+  }>(null)
   const [loyaltyPoints, setLoyaltyPoints] = useState(0)
   const [availablePoints, setAvailablePoints] = useState(0)
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false)
@@ -41,9 +45,14 @@ export default function CarritoView() {
     setAvailablePoints(user.loyaltyPoints)
   }, [user])
 
+  useEffect(() => {
+    if (payMethod === 'mp' && !commerce.mpEnabled && commerce.transferEnabled) setPayMethod('transfer')
+    if (payMethod === 'transfer' && !commerce.transferEnabled && commerce.mpEnabled) setPayMethod('mp')
+  }, [commerce.mpEnabled, commerce.transferEnabled, payMethod])
+
   const totalWeight = items.reduce((acc, item) => acc + item.weight * item.quantity, 0)
   const discountedSubtotal =
-    payMethod === 'transfer' ? Math.round(subtotal * (1 - CASH_DISCOUNT)) : subtotal
+    payMethod === 'transfer' ? Math.round(subtotal * (1 - cashRate)) : subtotal
   const couponDiscount =
     coupon?.type === 'percent' ? Math.round(discountedSubtotal * (coupon.value / 100)) : 0
   const afterCoupon = discountedSubtotal - couponDiscount
@@ -60,7 +69,7 @@ export default function CarritoView() {
       const res = await fetch('/api/shipping', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zipCode, totalWeight }),
+        body: JSON.stringify({ zipCode, totalWeight, orderTotal: subtotal }),
       })
       const data = await res.json()
       if (!res.ok || !data.options) {
@@ -143,7 +152,16 @@ export default function CarritoView() {
       }
       if (data.ok) {
         clear()
-        setStatus('Pedido registrado. Te enviamos los datos de transferencia.')
+        setTransferInfo(
+          data.transfer || {
+            bank: commerce.transferBank,
+            holder: commerce.transferHolder,
+            cbu: commerce.transferCbu,
+            alias: commerce.transferAlias,
+            instructions: commerce.transferInstructions,
+          },
+        )
+        setStatus('Pedido registrado. Completá la transferencia con estos datos:')
         return
       }
       throw new Error(data.error || 'Fallo de procesamiento')
@@ -160,7 +178,20 @@ export default function CarritoView() {
     <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-4 py-10 md:grid-cols-2">
       <div>
         <h1 className="font-display text-4xl">Tu carrito</h1>
-        {status && <p className="mt-4 bg-kap-green px-4 py-3 text-sm text-white">{status}</p>}
+        {status && (
+          <div className="mt-4 space-y-2 bg-kap-green px-4 py-3 text-sm text-white">
+            <p>{status}</p>
+            {transferInfo && (
+              <div className="whitespace-pre-line text-xs text-white/90">
+                {transferInfo.holder ? `Titular: ${transferInfo.holder}\n` : ''}
+                {transferInfo.bank ? `Banco: ${transferInfo.bank}\n` : ''}
+                {transferInfo.cbu ? `CBU/CVU: ${transferInfo.cbu}\n` : ''}
+                {transferInfo.alias ? `Alias: ${transferInfo.alias}\n` : ''}
+                {transferInfo.instructions || ''}
+              </div>
+            )}
+          </div>
+        )}
         <div className="mt-6 divide-y border">
           {empty ? (
             <p className="p-4 text-sm text-neutral-500">Tu carrito está vacío.</p>
@@ -333,14 +364,30 @@ export default function CarritoView() {
         )}
 
         <div className="space-y-2 text-sm">
-          <label className="flex gap-2">
-            <input type="radio" checked={payMethod === 'mp'} onChange={() => setPayMethod('mp')} />
-            Mercado Pago · 3 cuotas sin interés
-          </label>
-          <label className="flex gap-2">
-            <input type="radio" checked={payMethod === 'transfer'} onChange={() => setPayMethod('transfer')} />
-            Transferencia / efectivo · 20% OFF
-          </label>
+          {commerce.mpEnabled && (
+            <label className="flex gap-2">
+              <input type="radio" checked={payMethod === 'mp'} onChange={() => setPayMethod('mp')} />
+              {commerce.mpLabel}
+            </label>
+          )}
+          {commerce.transferEnabled && (
+            <label className="flex gap-2">
+              <input type="radio" checked={payMethod === 'transfer'} onChange={() => setPayMethod('transfer')} />
+              {commerce.transferLabel}
+            </label>
+          )}
+          {commerce.transferEnabled && payMethod === 'transfer' && (commerce.transferCbu || commerce.transferAlias) && (
+            <div className="whitespace-pre-line border bg-[#f4f7f4] px-3 py-2 text-xs text-neutral-700">
+              {commerce.transferHolder ? `Titular: ${commerce.transferHolder}\n` : ''}
+              {commerce.transferBank ? `Banco: ${commerce.transferBank}\n` : ''}
+              {commerce.transferCbu ? `CBU/CVU: ${commerce.transferCbu}\n` : ''}
+              {commerce.transferAlias ? `Alias: ${commerce.transferAlias}\n` : ''}
+              {commerce.transferInstructions}
+            </div>
+          )}
+          {!commerce.mpEnabled && !commerce.transferEnabled && (
+            <p className="text-xs text-red-600">No hay medios de pago habilitados. Revisá Ajustes generales → Pagos.</p>
+          )}
         </div>
 
         <div className="space-y-1 border-t pt-4 text-sm">
@@ -350,7 +397,7 @@ export default function CarritoView() {
           </div>
           {payMethod === 'transfer' && (
             <div className="flex justify-between text-red-600">
-              <span>20% OFF</span>
+              <span>{commerce.cashDiscountPercent}% OFF</span>
               <span>-{formatARS(subtotal - discountedSubtotal)}</span>
             </div>
           )}
@@ -379,7 +426,11 @@ export default function CarritoView() {
           </p>
         </div>
 
-        <button type="submit" disabled={isProcessingCheckout || empty} className="store-btn">
+        <button
+          type="submit"
+          disabled={isProcessingCheckout || empty || (!commerce.mpEnabled && !commerce.transferEnabled)}
+          className="store-btn"
+        >
           {isProcessingCheckout
             ? 'Procesando...'
             : payMethod === 'mp'

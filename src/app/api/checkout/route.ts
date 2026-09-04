@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
-import { CASH_DISCOUNT, POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
+import { POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
 import { findStoreProductDoc, getStoreCoupon, mapProduct } from '@/lib/storefront'
-import { randomPassword } from '@/lib/auth'
+import { getStoreSettings, randomPassword } from '@/lib/auth'
 import { payloadClient } from '@/lib/payload'
+import {
+  cashDiscountRate,
+  mpAccessToken,
+  paymentsWebhookBase,
+  storefrontUrl,
+  transferDetails,
+} from '@/lib/storeCommerce'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
-
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
-  options: { timeout: 5000 },
-})
 
 type CheckoutItem = {
   productId: string
@@ -61,8 +63,27 @@ export async function POST(req: Request) {
       (acc, curr) => acc + curr.unit_price * curr.quantity,
       0,
     )
+    const settings = await getStoreSettings().catch(() => null)
+    const mpOn = settings?.mpEnabled !== false
+    const transferOn = settings?.transferEnabled !== false
+    if (payMethod === 'mp' && !mpOn) {
+      return NextResponse.json({ error: 'Mercado Pago no está habilitado.' }, { status: 400 })
+    }
+    if (payMethod === 'transfer' && !transferOn) {
+      return NextResponse.json({ error: 'La transferencia no está habilitada.' }, { status: 400 })
+    }
+    if (payMethod !== 'mp' && payMethod !== 'transfer') {
+      return NextResponse.json({ error: 'Elegí un medio de pago.' }, { status: 400 })
+    }
+    if (payMethod === 'mp' && !mpAccessToken(settings)) {
+      return NextResponse.json(
+        { error: 'Mercado Pago no tiene Access Token. Cargalo en Ajustes generales → Pagos.' },
+        { status: 400 },
+      )
+    }
+
     const afterCash =
-      payMethod === 'transfer' ? Math.round(productsTotal * (1 - CASH_DISCOUNT)) : productsTotal
+      payMethod === 'transfer' ? Math.round(productsTotal * (1 - cashDiscountRate(settings))) : productsTotal
     const coupon = await getStoreCoupon(String(couponCode || ''))
     const couponDiscount =
       coupon?.type === 'percent' ? Math.round(afterCash * (coupon.value / 100)) : 0
@@ -135,7 +156,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (payMethod === 'transfer' || !process.env.MERCADOPAGO_ACCESS_TOKEN || process.env.MERCADOPAGO_ACCESS_TOKEN.includes('XXXXXX')) {
+    if (payMethod === 'transfer') {
       const { notifySale } = await import('@/lib/adminNotify')
       const full = await payload.findByID({
         collection: 'orders',
@@ -148,9 +169,12 @@ export async function POST(req: Request) {
         ok: true,
         orderId: orderRecord.id,
         total: totalOrderAmount,
-        message: 'Pedido creado. Completá el pago para confirmar.',
+        transfer: transferDetails(settings),
+        message: 'Pedido creado. Completá la transferencia para confirmarlo.',
       })
     }
+
+    const accessToken = mpAccessToken(settings)
 
     const mpItems = validatedItems.map((i) => ({
       id: i.variant.sku,
@@ -178,19 +202,21 @@ export async function POST(req: Request) {
       })
     }
 
-    const preference = new Preference(client)
+    const site = storefrontUrl(settings)
+    const hooks = paymentsWebhookBase(settings)
+    const preference = new Preference(new MercadoPagoConfig({ accessToken, options: { timeout: 5000 } }))
     const mpResponse = await preference.create({
       body: {
         items: mpItems,
         payer: { name: customer.name, email: customer.email },
         external_reference: String(orderRecord.id),
         back_urls: {
-          success: `${process.env.NEXT_PUBLIC_SERVER_URL}/carrito?status=success`,
-          failure: `${process.env.NEXT_PUBLIC_SERVER_URL}/carrito?status=failure`,
-          pending: `${process.env.NEXT_PUBLIC_SERVER_URL}/carrito?status=pending`,
+          success: `${site}/carrito?status=success`,
+          failure: `${site}/carrito?status=failure`,
+          pending: `${site}/carrito?status=pending`,
         },
         auto_return: 'approved',
-        notification_url: `${process.env.NEXT_PUBLIC_WEBHOOK_URL}/api/webhooks/mercadopago`,
+        notification_url: `${hooks}/api/webhooks/mercadopago`,
       },
     })
 

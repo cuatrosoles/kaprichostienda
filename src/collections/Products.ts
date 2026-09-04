@@ -106,7 +106,14 @@ export const Products: CollectionConfig = {
         description: 'Si lo dejás vacío, se genera a partir del nombre al guardar.',
       },
     },
-    { name: 'description', type: 'textarea', label: 'Descripción' },
+    {
+      name: 'description',
+      type: 'textarea',
+      label: 'Descripción',
+      admin: {
+        description: 'Cada Enter es una línea nueva en la ficha del producto.',
+      },
+    },
     { name: 'price', type: 'number', required: true, label: 'Precio (ARS)' },
     {
       name: 'mainCategory',

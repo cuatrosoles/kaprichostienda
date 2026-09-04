@@ -65,7 +65,7 @@ const loadStoreSettings = unstable_cache(
     )
   },
   ['store-settings'],
-  { revalidate: 60 },
+  { revalidate: 30, tags: ['store-settings'] },
 )
 
 export function getPublicAuthConfig(settings: StoreSetting): PublicAuthConfig {

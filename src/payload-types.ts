@@ -258,6 +258,9 @@ export interface Product {
    * Si lo dejás vacío, se genera a partir del nombre al guardar.
    */
   sku?: string | null;
+  /**
+   * Cada Enter es una línea nueva en la ficha del producto.
+   */
   description?: string | null;
   price: number;
   /**
@@ -715,7 +718,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Cuentas, avisos al administrador, captcha y correo SMTP.
+ * Cuentas, pagos, envíos, avisos, captcha y correo SMTP.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "store-settings".
@@ -740,6 +743,77 @@ export interface StoreSetting {
    * Nunca se envía al navegador. También se puede usar TURNSTILE_SECRET_KEY o RECAPTCHA_SECRET_KEY.
    */
   captchaSecretKey?: string | null;
+  mpEnabled?: boolean | null;
+  /**
+   * Así lo ve el cliente al elegir cómo pagar.
+   */
+  mpLabel?: string | null;
+  /**
+   * Lo sacás en Tus integraciones → Credenciales. Producción: APP_USR-…  Pruebas: TEST-…  Si lo dejás vacío, se usa MERCADOPAGO_ACCESS_TOKEN del servidor.
+   */
+  mpAccessToken?: string | null;
+  /**
+   * Ej: https://tudominio.com  Si está vacío, se usa NEXT_PUBLIC_SERVER_URL. Mercado Pago redirige acá al terminar.
+   */
+  paymentsSiteUrl?: string | null;
+  /**
+   * La misma URL pública de la tienda, sin barra al final. Si está vacía, se usa NEXT_PUBLIC_WEBHOOK_URL. Mercado Pago avisa a esta URL + /api/webhooks/mercadopago.
+   */
+  paymentsWebhookUrl?: string | null;
+  transferEnabled?: boolean | null;
+  cashDiscountPercent?: number | null;
+  /**
+   * Si lo dejás vacío, se arma solo con el porcentaje de descuento.
+   */
+  transferLabel?: string | null;
+  transferBank?: string | null;
+  transferHolder?: string | null;
+  transferCbu?: string | null;
+  transferAlias?: string | null;
+  /**
+   * Ej: Enviar el comprobante por WhatsApp al 11-…  Cada Enter es una línea nueva.
+   */
+  transferInstructions?: string | null;
+  /**
+   * Hoy la tienda cotiza sola con el código postal. La API externa es para Correo, Andreani u otro sistema que ustedes conecten.
+   */
+  shippingMode?: ('internal' | 'api') | null;
+  /**
+   * Se manda a la API externa si está activa. En la tarifa interna no cambia el precio.
+   */
+  shippingOriginZip?: string | null;
+  shipBaseCost?: number | null;
+  /**
+   * Se suma 1 vez por cada kilo o fracción del pedido.
+   */
+  shipPerKg?: number | null;
+  shipCabaMultiplier?: number | null;
+  shipGbaMultiplier?: number | null;
+  shipInteriorMultiplier?: number | null;
+  /**
+   * 0 = nunca automático. El cupón de envío gratis sigue funcionando aparte.
+   */
+  freeShippingFrom?: number | null;
+  standardEnabled?: boolean | null;
+  standardName?: string | null;
+  standardEta?: string | null;
+  expressEnabled?: boolean | null;
+  expressName?: string | null;
+  expressEta?: string | null;
+  expressMultiplier?: number | null;
+  pickupEnabled?: boolean | null;
+  pickupName?: string | null;
+  pickupEta?: string | null;
+  pickupMultiplier?: number | null;
+  /**
+   * La tienda hace POST con { zipCode, totalWeight, orderTotal, originZip }. Tiene que responder { options: [{ id, name, cost, eta }] }.
+   */
+  shippingApiUrl?: string | null;
+  /**
+   * Se manda como Bearer. Dejala vacía si no hace falta.
+   */
+  shippingApiKey?: string | null;
+  shippingApiTimeout?: number | null;
   /**
    * Ahí llegan ventas, registros, mensajes de contacto y alertas de stock bajo.
    */
@@ -833,6 +907,41 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   captchaProvider?: T;
   captchaSiteKey?: T;
   captchaSecretKey?: T;
+  mpEnabled?: T;
+  mpLabel?: T;
+  mpAccessToken?: T;
+  paymentsSiteUrl?: T;
+  paymentsWebhookUrl?: T;
+  transferEnabled?: T;
+  cashDiscountPercent?: T;
+  transferLabel?: T;
+  transferBank?: T;
+  transferHolder?: T;
+  transferCbu?: T;
+  transferAlias?: T;
+  transferInstructions?: T;
+  shippingMode?: T;
+  shippingOriginZip?: T;
+  shipBaseCost?: T;
+  shipPerKg?: T;
+  shipCabaMultiplier?: T;
+  shipGbaMultiplier?: T;
+  shipInteriorMultiplier?: T;
+  freeShippingFrom?: T;
+  standardEnabled?: T;
+  standardName?: T;
+  standardEta?: T;
+  expressEnabled?: T;
+  expressName?: T;
+  expressEta?: T;
+  expressMultiplier?: T;
+  pickupEnabled?: T;
+  pickupName?: T;
+  pickupEta?: T;
+  pickupMultiplier?: T;
+  shippingApiUrl?: T;
+  shippingApiKey?: T;
+  shippingApiTimeout?: T;
   adminEmail?: T;
   notifySales?: T;
   notifyRegistrations?: T;

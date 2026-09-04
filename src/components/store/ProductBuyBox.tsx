@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { CASH_DISCOUNT, formatARS, type CatalogProduct } from '@/data/catalog'
+import { formatARS, type CatalogProduct } from '@/data/catalog'
 import { useCart } from '@/context/CartContext'
+import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 
 export default function ProductBuyBox({ product }: { product: CatalogProduct }) {
   const { addItem } = useCart()
@@ -19,7 +20,9 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
   const variant =
     product.variants.find((v) => v.color === (color || colors[0]?.color) && v.size === (size || sizes[0]?.size)) ||
     product.variants[0]
-  const cashPrice = Math.round(product.price * (1 - CASH_DISCOUNT))
+  const commerce = useCommerce()
+  const cashRate = useCashDiscountRate()
+  const cashPrice = Math.round(product.price * (1 - cashRate))
 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:grid-cols-2">
@@ -45,10 +48,12 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
         <h1 className="mt-3 font-display text-4xl">{product.title}</h1>
         {product.sku && <p className="mt-1 text-xs uppercase tracking-widest text-neutral-500">SKU {product.sku}</p>}
         <p className="mt-3 text-xl">{formatARS(product.price)}</p>
-        <p className="mt-1 text-sm font-semibold text-red-600">
-          20% OFF {formatARS(cashPrice)} efectivo o transferencia
-        </p>
-        <p className="mt-6 text-sm leading-6 text-neutral-600">{product.description}</p>
+        {commerce.transferEnabled ? (
+          <p className="mt-1 text-sm font-semibold text-red-600">
+            {commerce.cashDiscountPercent}% OFF {formatARS(cashPrice)} efectivo o transferencia
+          </p>
+        ) : null}
+        <p className="mt-6 whitespace-pre-line text-sm leading-6 text-neutral-600">{product.description}</p>
 
         <div className="mt-8">
           <p className="text-xs uppercase tracking-widest">Color</p>

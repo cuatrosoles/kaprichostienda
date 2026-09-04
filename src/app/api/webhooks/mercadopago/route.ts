@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { Payload } from 'payload'
+import { getStoreSettings } from '@/lib/auth'
 import { payloadClient } from '@/lib/payload'
+import { mpAccessToken } from '@/lib/storeCommerce'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -48,9 +50,10 @@ function isPaymentNotification(req: Request, body: Record<string, unknown>): boo
 }
 
 async function fetchMercadoPagoPayment(paymentId: string): Promise<MercadoPagoPayment> {
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN
+  const settings = await getStoreSettings().catch(() => null)
+  const accessToken = mpAccessToken(settings)
   if (!accessToken) {
-    throw new Error('Falta MERCADOPAGO_ACCESS_TOKEN')
+    throw new Error('Falta el Access Token de Mercado Pago')
   }
 
   const response = await fetch(`${MP_PAYMENTS_URL}/${encodeURIComponent(paymentId)}`, {
