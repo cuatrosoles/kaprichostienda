@@ -18,7 +18,7 @@ export default function DevolucionPage() {
         </p>
         <p>
           El costo de reenvío por talle/color corre por cuenta del cliente, salvo falla de fabricación. Si el
-          error es nuestro, Kaprichos cubre el logística.
+          error es nuestro, Kaprichos cubre la logística.
         </p>
         <p>Botón de arrepentimiento: envianos un mail con asunto “Arrepentimiento” y el ID de tu orden.</p>
       </div>

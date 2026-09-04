@@ -15,7 +15,6 @@ export default function ClubPage() {
           descontar el total.
         </p>
         <p>Los puntos no se combinan con envío gratis en la misma orden si el cupón ya cubre el 100% del envío.</p>
-        <p>Cupones de prueba: KAPRI10 · BIENVENIDA15 · ENVIOGRATIS</p>
       </div>
     </div>
   )

@@ -27,11 +27,11 @@ export default function ContactoPage() {
       <h1 className="mt-3 font-display text-5xl">Contacto</h1>
       <div className="mt-10 grid gap-12 md:grid-cols-2">
         <div className="space-y-3 text-sm leading-7">
-          <p>+54 11 5555-0101</p>
-          <p>+54 11 5555-0102</p>
-          <p>info@kaprichos.com.ar</p>
+          <p>+54 2477 59-0742</p>
+          <p>maralga2008@yahoo.com.ar</p>
+          <p>C. Eduardo T. Silva 2096, Pergamino</p>
           <p>Buenos Aires, Argentina</p>
-          <p>Lunes a viernes 10 a 18 hs</p>
+          <p>Lun a Sab 17:00 a 20:00 hs</p>
         </div>
         <form onSubmit={onSubmit} className="space-y-5">
           <label className="block text-[11px] uppercase tracking-widest">
