@@ -5,6 +5,7 @@ import type { Category, Coupon, Media, Product } from '@/payload-types'
 import type { CatalogCategory, CatalogCoupon, CatalogProduct, HeroView, ProductVariant } from '@/data/catalog'
 import { DEFAULT_HERO } from '@/data/catalog'
 import { SEED_CATEGORIES } from '@/data/seed-catalog'
+import { productSpecs } from '@/lib/productMeta'
 import { withPayload } from '@/lib/payload'
 
 function mediaUrl(file: number | Media | null | undefined): string | null {
@@ -63,6 +64,7 @@ export function mapProduct(doc: Product): CatalogProduct {
     featured: Boolean(doc.featured),
     weight: Number(doc.weight || 400),
     description: doc.description || '',
+    specs: productSpecs(doc),
     variants,
   }
 }

@@ -114,6 +114,36 @@ export const Products: CollectionConfig = {
         description: 'Cada Enter es una línea nueva en la ficha del producto.',
       },
     },
+    {
+      type: 'collapsible',
+      label: 'Medidas y detalle (se ven en la ficha)',
+      admin: {
+        initCollapsed: false,
+        description: 'Completá solo lo que corresponda. Lo vacío no aparece en la tienda. Podés poner la unidad, ej: 42 cm.',
+      },
+      fields: [
+        { name: 'ancho', type: 'text', label: 'Ancho' },
+        { name: 'alto', type: 'text', label: 'Alto' },
+        { name: 'largo', type: 'text', label: 'Largo' },
+        { name: 'manga', type: 'text', label: 'Manga' },
+        { name: 'hombro', type: 'text', label: 'Hombro' },
+        { name: 'sisa', type: 'text', label: 'Sisa' },
+        { name: 'talle', type: 'text', label: 'Talle' },
+        { name: 'numero', type: 'text', label: 'Número' },
+        {
+          name: 'peso',
+          type: 'text',
+          label: 'Peso',
+          admin: { description: 'El que se muestra en la ficha. Ej: 250 g. El peso en gramos de más abajo es solo para el envío.' },
+        },
+        {
+          name: 'detalle',
+          type: 'textarea',
+          label: 'Detalle',
+          admin: { description: 'Cada Enter es una línea nueva.' },
+        },
+      ],
+    },
     { name: 'price', type: 'number', required: true, label: 'Precio (ARS)' },
     {
       name: 'mainCategory',
@@ -181,7 +211,16 @@ export const Products: CollectionConfig = {
       ],
       required: true,
     },
-    { name: 'weight', type: 'number', required: true, defaultValue: 400, label: 'Peso en gramos' },
+    {
+      name: 'weight',
+      type: 'number',
+      required: true,
+      defaultValue: 400,
+      label: 'Peso en gramos (para el envío)',
+      admin: {
+        description: 'Lo usa el cálculo de envío. No se muestra en la ficha. El peso visible es el campo Peso de Medidas y detalle.',
+      },
+    },
     {
       name: 'variants',
       type: 'array',

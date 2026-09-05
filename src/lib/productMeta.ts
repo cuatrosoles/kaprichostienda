@@ -13,6 +13,31 @@ export function skuFromTitle(title: string) {
   return `KAP-${base || 'PROD'}`
 }
 
+export const PRODUCT_SPEC_FIELDS = [
+  { key: 'ancho', label: 'Ancho' },
+  { key: 'alto', label: 'Alto' },
+  { key: 'largo', label: 'Largo' },
+  { key: 'manga', label: 'Manga' },
+  { key: 'hombro', label: 'Hombro' },
+  { key: 'sisa', label: 'Sisa' },
+  { key: 'talle', label: 'Talle' },
+  { key: 'numero', label: 'Número' },
+  { key: 'peso', label: 'Peso' },
+  { key: 'detalle', label: 'Detalle' },
+] as const
+
+export type ProductSpec = { key: string; label: string; value: string }
+
+export function productSpecs(doc: object | null | undefined): ProductSpec[] {
+  if (!doc) return []
+  const source = doc as Record<string, unknown>
+  return PRODUCT_SPEC_FIELDS.flatMap(({ key, label }) => {
+    const raw = source[key]
+    const value = raw == null ? '' : String(raw).trim()
+    return value ? [{ key, label, value }] : []
+  })
+}
+
 export function assignVariantSkus<T extends { sku?: string | null }>(
   productSku: string,
   variants: T[] | null | undefined,

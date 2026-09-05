@@ -6,6 +6,12 @@ export type ProductVariant = {
   stock: number
 }
 
+export type ProductSpec = {
+  key: string
+  label: string
+  value: string
+}
+
 export type CatalogProduct = {
   id: string
   slug: string
@@ -20,6 +26,7 @@ export type CatalogProduct = {
   featured?: boolean
   weight: number
   description: string
+  specs?: ProductSpec[]
   variants: ProductVariant[]
 }
 

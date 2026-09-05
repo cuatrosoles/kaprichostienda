@@ -262,6 +262,22 @@ export interface Product {
    * Cada Enter es una línea nueva en la ficha del producto.
    */
   description?: string | null;
+  ancho?: string | null;
+  alto?: string | null;
+  largo?: string | null;
+  manga?: string | null;
+  hombro?: string | null;
+  sisa?: string | null;
+  talle?: string | null;
+  numero?: string | null;
+  /**
+   * El que se muestra en la ficha. Ej: 250 g. El peso en gramos de más abajo es solo para el envío.
+   */
+  peso?: string | null;
+  /**
+   * Cada Enter es una línea nueva.
+   */
+  detalle?: string | null;
   price: number;
   /**
    * Mujer, Hombre, Niños, etc. Al elegirla aparecen las subcategorías.
@@ -280,6 +296,9 @@ export interface Product {
   onSale?: boolean | null;
   featured?: boolean | null;
   status: 'draft' | 'published';
+  /**
+   * Lo usa el cálculo de envío. No se muestra en la ficha. El peso visible es el campo Peso de Medidas y detalle.
+   */
   weight: number;
   variants?:
     | {
@@ -577,6 +596,16 @@ export interface ProductsSelect<T extends boolean = true> {
   slug?: T;
   sku?: T;
   description?: T;
+  ancho?: T;
+  alto?: T;
+  largo?: T;
+  manga?: T;
+  hombro?: T;
+  sisa?: T;
+  talle?: T;
+  numero?: T;
+  peso?: T;
+  detalle?: T;
   price?: T;
   mainCategory?: T;
   category?: T;

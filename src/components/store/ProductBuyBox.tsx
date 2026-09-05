@@ -54,6 +54,19 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
           </p>
         ) : null}
         <p className="mt-6 whitespace-pre-line text-sm leading-6 text-neutral-600">{product.description}</p>
+        {product.specs && product.specs.length > 0 ? (
+          <dl className="product-specs mt-6">
+            {product.specs.map((spec) => (
+              <div
+                key={spec.key}
+                className={`product-specs__cell${spec.key === 'detalle' ? ' product-specs__cell--wide' : ''}`}
+              >
+                <dt>{spec.label}</dt>
+                <dd className={spec.key === 'detalle' ? 'whitespace-pre-line' : undefined}>{spec.value}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : null}
 
         <div className="mt-8">
           <p className="text-xs uppercase tracking-widest">Color</p>
