@@ -46,26 +46,17 @@ aside.nav,
   color: #ffffff !important;
 }
 
-.nav__header,
-.nav__brand,
-.nav .graphic-logo {
+.kap-nav-brand {
   display: flex !important;
   justify-content: center;
   align-items: center;
   width: 100% !important;
-  max-width: 100% !important;
-  padding: 1.25rem 0.75rem 0.75rem !important;
+  box-sizing: border-box;
+  padding: 1.5rem 0.75rem 0.75rem !important;
 }
 
-.nav .graphic-icon {
-  display: none !important;
-}
-
-.kap-nav-logo,
-.nav__logotype img,
-.nav__brand img,
-.nav .graphic-logo img,
-.graphic-logo img {
+.kap-nav-brand .kap-nav-logo,
+.kap-nav-logo {
   display: block !important;
   width: 72% !important;
   min-width: 60% !important;
@@ -73,6 +64,10 @@ aside.nav,
   height: auto !important;
   border-radius: 50%;
   object-fit: cover;
+}
+
+.nav .graphic-icon {
+  display: none !important;
 }
 
 .login__brand img {
@@ -95,27 +90,22 @@ aside.nav,
   display: none !important;
 }
 
-/* Sidebar abierto: anula el estado colapsado */
-.nav--nav-collapsed,
-.nav.nav--nav-collapsed,
-aside.nav.nav--nav-collapsed {
-  width: var(--nav-width, 275px) !important;
-  min-width: var(--nav-width, 275px) !important;
-  max-width: var(--nav-width, 275px) !important;
-}
+/* Sidebar abierto en escritorio: Payload lo cierra por debajo de 1441px */
+@media (min-width: 768px) {
+  .template-default,
+  .template-default.template-default--nav-hydrated {
+    grid-template-columns: var(--nav-width, 275px) auto !important;
+  }
 
-.template-default--nav-collapsed {
-  grid-template-columns: var(--nav-width, 275px) minmax(0, 1fr) !important;
-}
-
-.nav--nav-collapsed .nav__link-label,
-.nav--nav-collapsed .nav-group__label,
-.nav--nav-collapsed .nav__group-label,
-.nav--nav-collapsed .nav__link span {
-  display: inline !important;
-  opacity: 1 !important;
-  width: auto !important;
-  overflow: visible !important;
+  .template-default .nav,
+  aside.nav,
+  .nav {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: var(--nav-width, 275px) !important;
+    min-width: var(--nav-width, 275px) !important;
+  }
 }
 
 .nav__link,

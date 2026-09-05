@@ -133,6 +133,7 @@ export default buildConfig({
         Icon: '/graphics/Icon',
       },
       providers: ['/graphics/AdminDefaults'],
+      beforeNav: ['/graphics/NavBrand'],
     },
   },
   collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],
