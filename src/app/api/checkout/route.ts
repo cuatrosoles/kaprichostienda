@@ -120,7 +120,7 @@ export async function POST(req: Request) {
             }
           : shippingAddress,
         shippingMethod: chosenFree?.name || String(shippingMethodName || methodId || ''),
-        items: validatedItems.map((i) => ({)
+        items: validatedItems.map((i) => ({
           product: Number(i.id),
           quantity: i.quantity,
           priceAtPurchase: i.unit_price,
