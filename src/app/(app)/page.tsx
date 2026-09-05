@@ -1,15 +1,11 @@
 import Link from 'next/link'
-import CatalogImage from '@/components/store/CatalogImage'
 import ProductCard from '@/components/store/ProductCard'
 import HeroSlider from '@/components/store/HeroSlider'
-import { topLevelCategories } from '@/data/catalog'
-import { getHomeHero, getStoreCategories, getStoreProducts } from '@/lib/storefront'
+import { getHomeHero, getStoreProducts } from '@/lib/storefront'
 
 export default async function HomePage() {
-  const categories = await getStoreCategories()
   const products = await getStoreProducts()
   const hero = await getHomeHero()
-  const homeCategories = topLevelCategories(categories).filter((c) => c.showOnHome !== false)
   const featured = products.filter((p) => p.featured)
   const news = products.filter((p) => p.isNew)
 
@@ -34,27 +30,6 @@ export default async function HomePage() {
           <p className="text-2xl">💬</p>
           <p className="mt-2 font-medium">Contactanos</p>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-16">
-        {homeCategories.length === 0 ? (
-          <p className="text-center text-sm text-neutral-500">
-            Todavía no hay categorías publicadas. Cargalas desde el panel de administración.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
-            {homeCategories.map((c) => (
-              <Link key={c.slug} href={`/productos?categoria=${c.slug}`} className="group">
-                {c.image ? (
-                  <CatalogImage src={c.image} alt={c.title} className="aspect-[4/5] w-full rounded-md object-cover" />
-                ) : null}
-                <h2 className={`${c.image ? 'mt-3' : 'rounded-md border border-neutral-200 py-8'} text-center text-sm font-semibold`}>
-                  {c.title}
-                </h2>
-              </Link>
-            ))}
-          </div>
-        )}
       </section>
 
       <section className="mx-auto max-w-6xl px-4 pb-16">
