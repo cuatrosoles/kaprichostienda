@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { formatARS, type CatalogProduct } from '@/data/catalog'
+import { sizesMatch } from '@/lib/productMeta'
 import { useCart } from '@/context/CartContext'
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 
@@ -54,18 +55,38 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
           </p>
         ) : null}
         <p className="mt-6 whitespace-pre-line text-sm leading-6 text-neutral-600">{product.description}</p>
-        {product.specs && product.specs.length > 0 ? (
-          <dl className="product-specs mt-6">
-            {product.specs.map((spec) => (
-              <div
-                key={spec.key}
-                className={`product-specs__cell${spec.key === 'detalle' ? ' product-specs__cell--wide' : ''}`}
-              >
-                <dt>{spec.label}</dt>
-                <dd className={spec.key === 'detalle' ? 'whitespace-pre-line' : undefined}>{spec.value}</dd>
-              </div>
-            ))}
-          </dl>
+        {product.sizeGuide?.detalle ? (
+          <p className="mt-3 whitespace-pre-line text-sm leading-6 text-neutral-600">{product.sizeGuide.detalle}</p>
+        ) : null}
+        {product.sizeGuide && product.sizeGuide.rows.length > 0 ? (
+          <div className="product-size-guide mt-6">
+            <p className="text-xs uppercase tracking-widest">Medidas por talle</p>
+            <div className="product-size-guide__scroll mt-2">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Talle</th>
+                    {product.sizeGuide.columns.map((col) => (
+                      <th key={col.key}>{col.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.sizeGuide.rows.map((row) => (
+                    <tr
+                      key={row.talle}
+                      className={sizesMatch(row.talle, size || sizes[0]?.size) ? 'is-active' : undefined}
+                    >
+                      <th scope="row">{row.talle}</th>
+                      {product.sizeGuide!.columns.map((col) => (
+                        <td key={col.key}>{row.cells[col.key] || '—'}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         ) : null}
 
         <div className="mt-8">

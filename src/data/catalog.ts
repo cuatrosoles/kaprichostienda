@@ -6,10 +6,20 @@ export type ProductVariant = {
   stock: number
 }
 
-export type ProductSpec = {
+export type SizeGuideColumn = {
   key: string
   label: string
-  value: string
+}
+
+export type SizeGuideRow = {
+  talle: string
+  cells: Record<string, string>
+}
+
+export type SizeGuideView = {
+  columns: SizeGuideColumn[]
+  rows: SizeGuideRow[]
+  detalle?: string
 }
 
 export type CatalogProduct = {
@@ -26,7 +36,7 @@ export type CatalogProduct = {
   featured?: boolean
   weight: number
   description: string
-  specs?: ProductSpec[]
+  sizeGuide?: SizeGuideView | null
   variants: ProductVariant[]
 }
 

@@ -13,29 +13,91 @@ export function skuFromTitle(title: string) {
   return `KAP-${base || 'PROD'}`
 }
 
-export const PRODUCT_SPEC_FIELDS = [
+export const SIZE_MEASURE_FIELDS = [
   { key: 'ancho', label: 'Ancho' },
-  { key: 'alto', label: 'Alto' },
   { key: 'largo', label: 'Largo' },
   { key: 'manga', label: 'Manga' },
   { key: 'hombro', label: 'Hombro' },
+  { key: 'alto', label: 'Alto' },
   { key: 'sisa', label: 'Sisa' },
-  { key: 'talle', label: 'Talle' },
   { key: 'numero', label: 'Número' },
   { key: 'peso', label: 'Peso' },
-  { key: 'detalle', label: 'Detalle' },
 ] as const
 
-export type ProductSpec = { key: string; label: string; value: string }
+export type SizeGuideColumn = { key: string; label: string }
 
-export function productSpecs(doc: object | null | undefined): ProductSpec[] {
-  if (!doc) return []
+export type SizeGuideRow = {
+  talle: string
+  cells: Record<string, string>
+}
+
+export type SizeGuideView = {
+  columns: SizeGuideColumn[]
+  rows: SizeGuideRow[]
+  detalle?: string
+}
+
+function filled(value: unknown) {
+  return value == null ? '' : String(value).trim()
+}
+
+export function normalizeSizeLabel(value: unknown) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/^talle\s*/i, '')
+    .replace(/^t\.?\s*/i, '')
+    .trim()
+}
+
+export function sizesMatch(a: unknown, b: unknown) {
+  const left = normalizeSizeLabel(a)
+  const right = normalizeSizeLabel(b)
+  return Boolean(left && right && left === right)
+}
+
+function cellsFromSource(source: Record<string, unknown>) {
+  const cells: Record<string, string> = {}
+  for (const { key } of SIZE_MEASURE_FIELDS) {
+    const value = filled(source[key])
+    if (value) cells[key] = value
+  }
+  return cells
+}
+
+export function productSizeGuide(doc: object | null | undefined): SizeGuideView | null {
+  if (!doc) return null
   const source = doc as Record<string, unknown>
-  return PRODUCT_SPEC_FIELDS.flatMap(({ key, label }) => {
-    const raw = source[key]
-    const value = raw == null ? '' : String(raw).trim()
-    return value ? [{ key, label, value }] : []
+  const detalle = filled(source.detalle)
+  const rawRows = Array.isArray(source.sizeGuide) ? source.sizeGuide : []
+
+  let rows: SizeGuideRow[] = rawRows.flatMap((row) => {
+    if (!row || typeof row !== 'object') return []
+    const item = row as Record<string, unknown>
+    const talle = filled(item.talle)
+    if (!talle) return []
+    return [{ talle, cells: cellsFromSource(item) }]
   })
+
+  if (!rows.length) {
+    const legacy = cellsFromSource(source)
+    const talle = filled(source.talle)
+    if (Object.keys(legacy).length) {
+      rows = [{ talle: talle || 'Único', cells: legacy }]
+    }
+  }
+
+  if (!rows.length && !detalle) return null
+
+  const used = new Set<string>()
+  for (const row of rows) {
+    for (const key of Object.keys(row.cells)) used.add(key)
+  }
+  const columns = SIZE_MEASURE_FIELDS.filter(({ key }) => used.has(key)).map(({ key, label }) => ({
+    key,
+    label,
+  }))
+
+  return { columns, rows, detalle: detalle || undefined }
 }
 
 export function assignVariantSkus<T extends { sku?: string | null }>(
