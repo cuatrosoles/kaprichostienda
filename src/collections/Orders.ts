@@ -83,6 +83,7 @@ export const Orders: CollectionConfig = {
         { name: 'color', type: 'text', label: 'Color' },
       ],
     },
+    { name: 'shippingMethod', type: 'text', label: 'Opción de envío o retiro' },
     { name: 'shippingCost', type: 'number', required: true, label: 'Costo de envío abonado' },
     { name: 'discount', type: 'number', defaultValue: 0, label: 'Descuento (cupón / puntos)' },
     { name: 'couponCode', type: 'text', label: 'Cupón aplicado' },

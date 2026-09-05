@@ -1,5 +1,8 @@
 import type { StoreSetting } from '@/payload-types'
 import { lookupArgentinePostalCode, normalizeArgentineZip, type PostalLocation } from '@/lib/postalCode'
+import { localFulfillmentOptions } from '@/lib/fulfillment'
+
+export { isFreeFulfillment, localFulfillmentOptions, OWN_MESSENGER_ID, STORE_PICKUP_ID } from '@/lib/fulfillment'
 
 export type ShippingOption = {
   id: string
@@ -12,6 +15,12 @@ export type ShippingQuote = {
   options: ShippingOption[]
   location: PostalLocation | null
   source: 'api' | 'internal'
+}
+
+function withLocalFulfillment(options: ShippingOption[], settings?: StoreSetting | null) {
+  const extras = localFulfillmentOptions(settings)
+  const extraIds = new Set(extras.map((option) => option.id))
+  return [...options.filter((option) => !extraIds.has(option.id)), ...extras]
 }
 
 function num(value: unknown, fallback: number) {
@@ -148,7 +157,7 @@ export async function quoteShipping(args: {
     try {
       const apiOptions = await quoteFromApi(settings, String(args.zipCode), totalWeight, orderTotal, location)
       if (apiOptions) {
-        return { options: apiOptions, location, source: 'api' }
+        return { options: withLocalFulfillment(apiOptions, settings), location, source: 'api' }
       }
     } catch {
       /* cae a la tarifa interna */
@@ -156,7 +165,7 @@ export async function quoteShipping(args: {
   }
 
   return {
-    options: quoteInternal(settings, digits, totalWeight, orderTotal),
+    options: withLocalFulfillment(quoteInternal(settings, digits, totalWeight, orderTotal), settings),
     location,
     source: 'internal',
   }

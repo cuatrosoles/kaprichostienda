@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from 'react'
 import type { PublicCommerce } from '@/lib/storeCommerce'
+import { localFulfillmentOptions } from '@/lib/fulfillment'
 
 export const FALLBACK_COMMERCE: PublicCommerce = {
   cashDiscountPercent: 20,
@@ -14,6 +15,7 @@ export const FALLBACK_COMMERCE: PublicCommerce = {
   transferCbu: '',
   transferAlias: '',
   transferInstructions: '',
+  fulfillmentOptions: localFulfillmentOptions(),
 }
 
 const CommerceContext = createContext<PublicCommerce>(FALLBACK_COMMERCE)

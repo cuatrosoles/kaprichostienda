@@ -370,6 +370,7 @@ export interface Order {
         id?: string | null;
       }[]
     | null;
+  shippingMethod?: string | null;
   shippingCost: number;
   discount?: number | null;
   couponCode?: string | null;
@@ -690,6 +691,7 @@ export interface OrdersSelect<T extends boolean = true> {
         color?: T;
         id?: T;
       };
+  shippingMethod?: T;
   shippingCost?: T;
   discount?: T;
   couponCode?: T;
@@ -865,6 +867,18 @@ export interface StoreSetting {
   pickupName?: string | null;
   pickupEta?: string | null;
   pickupMultiplier?: number | null;
+  storePickupEnabled?: boolean | null;
+  storePickupName?: string | null;
+  /**
+   * El costo es siempre $0.
+   */
+  storePickupEta?: string | null;
+  ownMessengerEnabled?: boolean | null;
+  ownMessengerName?: string | null;
+  /**
+   * El costo es siempre $0. El cliente usa su propio mensajero.
+   */
+  ownMessengerEta?: string | null;
   /**
    * La tienda hace POST con { zipCode, totalWeight, orderTotal, originZip }. Tiene que responder { options: [{ id, name, cost, eta }] }.
    */
@@ -917,7 +931,7 @@ export interface HomeHero {
          */
         image?: (number | null) | Media;
         /**
-         * Ej: /catalog/hero-temporada.jpg
+         * URL pública de una imagen (opcional si ya subiste un archivo).
          */
         imageUrl?: string | null;
         alt?: string | null;
@@ -999,6 +1013,12 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   pickupName?: T;
   pickupEta?: T;
   pickupMultiplier?: T;
+  storePickupEnabled?: T;
+  storePickupName?: T;
+  storePickupEta?: T;
+  ownMessengerEnabled?: T;
+  ownMessengerName?: T;
+  ownMessengerEta?: T;
   shippingApiUrl?: T;
   shippingApiKey?: T;
   shippingApiTimeout?: T;

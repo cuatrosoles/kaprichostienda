@@ -1,4 +1,5 @@
 import type { StoreSetting } from '@/payload-types'
+import { localFulfillmentOptions, type FulfillmentOption } from '@/lib/fulfillment'
 
 export type PublicCommerce = {
   cashDiscountPercent: number
@@ -11,6 +12,7 @@ export type PublicCommerce = {
   transferCbu: string
   transferAlias: string
   transferInstructions: string
+  fulfillmentOptions: FulfillmentOption[]
 }
 
 const DEFAULT_MP_LABEL = 'Mercado Pago · 3 cuotas sin interés'
@@ -67,6 +69,7 @@ export function getPublicCommerce(settings?: StoreSetting | null): PublicCommerc
     transferCbu: String(settings?.transferCbu || '').trim(),
     transferAlias: String(settings?.transferAlias || '').trim(),
     transferInstructions: String(settings?.transferInstructions || '').trim(),
+    fulfillmentOptions: localFulfillmentOptions(settings),
   }
 }
 

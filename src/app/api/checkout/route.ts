@@ -11,6 +11,7 @@ import {
   storefrontUrl,
   transferDetails,
 } from '@/lib/storeCommerce'
+import { isFreeFulfillment, localFulfillmentOptions } from '@/lib/fulfillment'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -30,6 +31,8 @@ export async function POST(req: Request) {
       customer,
       shippingAddress,
       shippingCost,
+      shippingMethod,
+      shippingMethodName,
       couponCode,
       loyaltyPoints = 0,
       payMethod = 'mp',
@@ -87,7 +90,13 @@ export async function POST(req: Request) {
     const coupon = await getStoreCoupon(String(couponCode || ''))
     const couponDiscount =
       coupon?.type === 'percent' ? Math.round(afterCash * (coupon.value / 100)) : 0
-    const ship = coupon?.type === 'shipping' ? 0 : Number(shippingCost || 0)
+    const methodId = String(shippingMethod || '')
+    const freeMethods = localFulfillmentOptions(settings)
+    const chosenFree = freeMethods.find((option) => option.id === methodId)
+    if (methodId && isFreeFulfillment(methodId) && !chosenFree) {
+      return NextResponse.json({ error: 'Esa opción de retiro no está habilitada.' }, { status: 400 })
+    }
+    const ship = coupon?.type === 'shipping' || isFreeFulfillment(methodId) ? 0 : Number(shippingCost || 0)
     const pointsUsed = Math.max(0, Number(loyaltyPoints) || 0)
     const pointsDiscount = pointsUsed * POINT_VALUE_ARS
     const totalOrderAmount = Math.max(0, afterCash - couponDiscount - pointsDiscount + ship)
@@ -101,8 +110,17 @@ export async function POST(req: Request) {
         customerName: customer.name,
         customerEmail: customer.email,
         customerPhone: customer.phone,
-        shippingAddress,
-        items: validatedItems.map((i) => ({
+        shippingAddress: isFreeFulfillment(methodId)
+          ? {
+              street: shippingAddress?.street || (methodId === 'store_pickup' ? 'Retiro en tienda' : 'A coordinar'),
+              floorAppart: shippingAddress?.floorAppart || '',
+              city: shippingAddress?.city || (methodId === 'store_pickup' ? 'Tienda Kaprichos' : 'A coordinar'),
+              province: shippingAddress?.province || 'A coordinar',
+              zipCode: shippingAddress?.zipCode || '0000',
+            }
+          : shippingAddress,
+        shippingMethod: chosenFree?.name || String(shippingMethodName || methodId || ''),
+        items: validatedItems.map((i) => ({)
           product: Number(i.id),
           quantity: i.quantity,
           priceAtPurchase: i.unit_price,

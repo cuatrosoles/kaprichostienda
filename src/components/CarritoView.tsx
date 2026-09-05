@@ -7,6 +7,7 @@ import { type CatalogCoupon, formatARS, POINT_VALUE_ARS, POINTS_PER_THOUSAND } f
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 import type { PostalLocation } from '@/lib/postalCode'
 import CatalogImage from '@/components/store/CatalogImage'
+import { isFreeFulfillment, STORE_PICKUP_ID } from '@/lib/fulfillment'
 
 type ShippingOption = { id: string; name: string; cost: number; eta: string }
 
@@ -59,7 +60,16 @@ export default function CarritoView() {
   const afterCoupon = discountedSubtotal - couponDiscount
   const pointsValue = Math.min(loyaltyPoints, availablePoints) * POINT_VALUE_ARS
   const shippingCost =
-    coupon?.type === 'shipping' ? 0 : selectedShipping ? selectedShipping.cost : 0
+    coupon?.type === 'shipping' || isFreeFulfillment(selectedShipping?.id)
+      ? 0
+      : selectedShipping
+        ? selectedShipping.cost
+        : 0
+  const visibleShippingOptions = [
+    ...(commerce.fulfillmentOptions || []),
+    ...shippingOptions.filter((opt) => !isFreeFulfillment(opt.id)),
+  ]
+  const isStorePickup = selectedShipping?.id === STORE_PICKUP_ID
   const grandTotal = Math.max(0, afterCoupon - pointsValue + shippingCost)
 
   const handleCalculateShipping = async () => {
@@ -81,7 +91,12 @@ export default function CarritoView() {
         return
       }
       setShippingOptions(data.options)
-      setSelectedShipping(data.options[0])
+      setSelectedShipping((current) => {
+        if (current && (isFreeFulfillment(current.id) || data.options.some((opt: ShippingOption) => opt.id === current.id))) {
+          return current
+        }
+        return data.options[0] || current
+      })
       const location = data.location as PostalLocation | null
       setShippingLocation(location)
       if (location) {
@@ -122,7 +137,10 @@ export default function CarritoView() {
   const handleCheckout = async (e: FormEvent) => {
     e.preventDefault()
     if (!selectedShipping && coupon?.type !== 'shipping') {
-      return alert('Calculá y seleccioná una opción de envío')
+      return alert('Elegí una opción de envío o retiro')
+    }
+    if (selectedShipping && !isFreeFulfillment(selectedShipping.id) && !zipCode.trim()) {
+      return alert('Calculá el envío con tu código postal')
     }
     setIsProcessingCheckout(true)
     try {
@@ -138,8 +156,18 @@ export default function CarritoView() {
             color: item.color,
           })),
           customer,
-          shippingAddress: { ...address, zipCode },
-          shippingCost,
+          shippingAddress: isStorePickup
+            ? {
+                street: address.street || 'Retiro en tienda',
+                floorAppart: address.floorAppart,
+                city: address.city || 'Tienda Kaprichos',
+                province: address.province || 'A coordinar',
+                zipCode: zipCode || '0000',
+              }
+            : { ...address, zipCode },
+          shippingCost: isFreeFulfillment(selectedShipping?.id) ? 0 : shippingCost,
+          shippingMethod: selectedShipping?.id || '',
+          shippingMethodName: selectedShipping?.name || '',
           couponCode: coupon?.code,
           loyaltyPoints: Math.min(loyaltyPoints, availablePoints),
           payMethod,
@@ -225,7 +253,10 @@ export default function CarritoView() {
         </div>
 
         <div className="mt-8 space-y-3 border p-4">
-          <h3 className="text-sm font-semibold uppercase tracking-widest">Envío nacional</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-widest">Envío y retiro</h3>
+          <p className="text-xs text-neutral-500">
+            Retiro en tienda y mensajero de confianza no tienen costo. Para correo, calculá con tu código postal.
+          </p>
           <div className="flex gap-2">
             <input
               value={zipCode}
@@ -264,7 +295,7 @@ export default function CarritoView() {
               </p>
             </div>
           )}
-          {shippingOptions.map((opt) => (
+          {visibleShippingOptions.map((opt) => (
             <label key={opt.id} className="flex items-center justify-between border p-2 text-sm">
               <span>
                 <input
@@ -275,7 +306,7 @@ export default function CarritoView() {
                 />
                 {opt.name} · {opt.eta}
               </span>
-              <span>{coupon?.type === 'shipping' ? 'Gratis' : formatARS(opt.cost)}</span>
+              <span>{coupon?.type === 'shipping' || opt.cost === 0 ? 'Gratis' : formatARS(opt.cost)}</span>
             </label>
           ))}
         </div>
@@ -307,8 +338,8 @@ export default function CarritoView() {
           className="store-input"
         />
         <input
-          required
-          placeholder="Calle y número"
+          required={!isStorePickup}
+          placeholder={isStorePickup ? 'Calle y número (opcional)' : 'Calle y número'}
           value={address.street}
           onChange={(e) => setAddress({ ...address, street: e.target.value })}
           className="store-input"
@@ -321,15 +352,15 @@ export default function CarritoView() {
         />
         <div className="grid grid-cols-2 gap-2">
           <input
-            required
-            placeholder="Ciudad"
+            required={!isStorePickup}
+            placeholder={isStorePickup ? 'Ciudad (opcional)' : 'Ciudad'}
             value={address.city}
             onChange={(e) => setAddress({ ...address, city: e.target.value })}
             className="store-input"
           />
           <input
-            required
-            placeholder="Provincia"
+            required={!isStorePickup}
+            placeholder={isStorePickup ? 'Provincia (opcional)' : 'Provincia'}
             value={address.province}
             onChange={(e) => setAddress({ ...address, province: e.target.value })}
             className="store-input"
