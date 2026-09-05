@@ -50,7 +50,7 @@ export const HomeHero: GlobalConfig = {
                   type: 'text',
                   label: 'URL de imagen (opcional)',
                   admin: {
-                    description: 'Ej: /catalog/hero-temporada.jpg',
+                    description: 'URL pública de una imagen (opcional si ya subiste un archivo).',
                   },
                 },
                 {

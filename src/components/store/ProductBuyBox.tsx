@@ -6,11 +6,12 @@ import { formatARS, type CatalogProduct } from '@/data/catalog'
 import { sizesMatch } from '@/lib/productMeta'
 import { useCart } from '@/context/CartContext'
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
+import CatalogImage from '@/components/store/CatalogImage'
 
 export default function ProductBuyBox({ product }: { product: CatalogProduct }) {
   const { addItem } = useCart()
-  const gallery = product.images?.length ? product.images : [product.image]
-  const [activeImage, setActiveImage] = useState(gallery[0] || product.image)
+  const gallery = (product.images?.length ? product.images : [product.image]).filter(Boolean)
+  const [activeImage, setActiveImage] = useState(gallery[0] || '')
   const colors = useMemo(
     () => Array.from(new Map(product.variants.map((v) => [v.color, v])).values()),
     [product],
@@ -28,7 +29,7 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
   return (
     <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:grid-cols-2">
       <div>
-        <img src={activeImage} alt={product.title} className="w-full rounded-md object-cover" />
+        <CatalogImage src={activeImage} alt={product.title} className="aspect-[3/4] w-full rounded-md object-cover" />
         {gallery.length > 1 && (
           <div className="mt-3 grid grid-cols-5 gap-2">
             {gallery.map((src) => (
@@ -38,7 +39,7 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
                 onClick={() => setActiveImage(src)}
                 className={`overflow-hidden rounded-md border ${activeImage === src ? 'border-black' : 'border-transparent'}`}
               >
-                <img src={src} alt="" className="aspect-square w-full object-cover" />
+                <CatalogImage src={src} alt="" className="aspect-square w-full object-cover" />
               </button>
             ))}
           </div>

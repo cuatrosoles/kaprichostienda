@@ -4,9 +4,22 @@ import { cache } from 'react'
 import type { Category, Coupon, Media, Product } from '@/payload-types'
 import type { CatalogCategory, CatalogCoupon, CatalogProduct, HeroView, ProductVariant } from '@/data/catalog'
 import { DEFAULT_HERO } from '@/data/catalog'
-import { SEED_CATEGORIES } from '@/data/seed-catalog'
+import { SEED_PRODUCT_SLUGS } from '@/data/seed-catalog'
 import { productSizeGuide } from '@/lib/productMeta'
 import { withPayload } from '@/lib/payload'
+
+function isDummyStoreAsset(url?: string | null): boolean {
+  if (!url) return true
+  return url.startsWith('/catalog/') || url.includes('/catalog/')
+}
+
+function publicAssetUrl(url?: string | null): string {
+  return url && !isDummyStoreAsset(url) ? url : ''
+}
+
+function isSampleProduct(product: CatalogProduct): boolean {
+  return SEED_PRODUCT_SLUGS.has(product.slug) && !product.image
+}
 
 function mediaUrl(file: number | Media | null | undefined): string | null {
   if (!file || typeof file === 'number') return null
@@ -23,7 +36,7 @@ export function mapCategory(doc: Category): CatalogCategory {
   return {
     slug: doc.slug,
     title: doc.title,
-    image: doc.imageUrl || '/catalog/prod-remera.jpg',
+    image: publicAssetUrl(doc.imageUrl) || undefined,
     description: doc.description || undefined,
     parentSlug: categoryParentSlug(doc),
     menuGroup: doc.menuGroup || undefined,
@@ -40,8 +53,8 @@ export function mapProduct(doc: Product): CatalogProduct {
     .map((img) => mediaUrl(img))
     .filter((url): url is string => Boolean(url))
     .slice(0, 4)
-  const image = mainUpload || gallery[0] || '/catalog/prod-remera.jpg'
-  const images = [image, ...gallery.filter((url) => url !== image)]
+  const image = publicAssetUrl(mainUpload || gallery[0])
+  const images = [image, ...gallery.map(publicAssetUrl).filter((url) => url && url !== image)].filter(Boolean)
   const variants: ProductVariant[] = (doc.variants || []).map((v) => ({
     sku: v.sku || '',
     size: v.size,
@@ -93,31 +106,18 @@ const loadStoreCategories = unstable_cache(
           pagination: false,
           overrideAccess: true,
         })
-        const mapped = result.docs.map(mapCategory)
-        if (mapped.length) {
-          return mapped.sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
-        }
-        return seedCategories()
+        return result.docs
+          .map(mapCategory)
+          .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0))
       })
     } catch (error) {
       console.error('No se pudieron leer categorías de Payload:', error)
-      return seedCategories()
+      return []
     }
   },
   ['store-categories'],
   { revalidate: 60 },
 )
-
-function seedCategories(): CatalogCategory[] {
-  return SEED_CATEGORIES.map((c) => ({
-    slug: c.slug,
-    title: c.title,
-    image: c.imageUrl,
-    parentSlug: c.parent,
-    sort: c.sort,
-    showOnHome: c.showOnHome !== false && !c.parent,
-  }))
-}
 
 async function loadStoreProducts(params?: {
   categoria?: string
@@ -168,7 +168,7 @@ async function loadStoreProducts(params?: {
         overrideAccess: true,
         sort: '-createdAt',
       })
-      return result.docs.map(mapProduct)
+      return result.docs.map(mapProduct).filter((product) => !isSampleProduct(product))
     })
   } catch (error) {
     console.error('No se pudieron leer productos de Payload:', error)
@@ -231,7 +231,9 @@ export async function getStoreProductBySlug(slug: string): Promise<CatalogProduc
         pagination: false,
         overrideAccess: true,
       })
-      return result.docs[0] ? mapProduct(result.docs[0]) : null
+      if (!result.docs[0]) return null
+      const product = mapProduct(result.docs[0])
+      return isSampleProduct(product) ? null : product
     })
   } catch (error) {
     console.error('No se pudo leer el producto:', error)
@@ -294,8 +296,8 @@ const OBJECT_POSITION: Record<string, string> = {
 }
 
 function heroImageUrl(image: number | Media | null | undefined, fallback?: string | null) {
-  if (image && typeof image === 'object') return image.url || fallback || null
-  return fallback || null
+  if (image && typeof image === 'object') return publicAssetUrl(image.url) || publicAssetUrl(fallback) || null
+  return publicAssetUrl(fallback) || null
 }
 
 export const getHomeHero = cache(async (): Promise<HeroView> => loadHomeHero())

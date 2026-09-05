@@ -29,7 +29,7 @@ export const Categories: CollectionConfig = {
         ...(id ? { id: { not_equals: id } } : {}),
       }),
     },
-    { name: 'imageUrl', type: 'text', label: 'Imagen (URL o /catalog/...)' },
+    { name: 'imageUrl', type: 'text', label: 'Imagen (URL pública)' },
     { name: 'description', type: 'textarea', label: 'Descripción' },
     {
       name: 'menuGroup',

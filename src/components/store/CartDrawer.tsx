@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCart } from '@/context/CartContext'
 import { formatARS } from '@/data/catalog'
+import CatalogImage from '@/components/store/CatalogImage'
 
 export default function CartDrawer() {
   const { items, isOpen, closeCart, updateQty, removeItem, subtotal, count } = useCart()
@@ -29,7 +30,7 @@ export default function CartDrawer() {
             <ul className="space-y-5">
               {items.map((item) => (
                 <li key={item.sku} className="flex gap-3">
-                  <img src={item.image} alt={item.title} className="h-24 w-16 rounded object-cover" />
+                  <CatalogImage src={item.image} alt={item.title} className="h-24 w-16 shrink-0 rounded object-cover" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">{item.title}</p>
                     <p className="text-xs text-neutral-500">

@@ -43,7 +43,7 @@ export type CatalogProduct = {
 export type CatalogCategory = {
   slug: string
   title: string
-  image: string
+  image?: string
   description?: string
   parentSlug?: string
   menuGroup?: string
@@ -80,16 +80,7 @@ export type HeroView = {
 }
 
 export const DEFAULT_HERO: HeroView = {
-  slides: [
-    {
-      image: '/catalog/hero-temporada.jpg',
-      alt: 'Nueva temporada Kaprichos',
-      eyebrow: 'Nueva',
-      title: 'Temporada',
-      badges: ['3 cuotas sin interés', '20% OFF efectivo o transferencia'],
-      objectPosition: 'center top',
-    },
-  ],
+  slides: [],
   transition: 'fade',
   intervalMs: 6000,
   durationMs: 800,

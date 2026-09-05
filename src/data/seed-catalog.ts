@@ -299,6 +299,8 @@ export const SEED_PRODUCTS: SeedProduct[] = [
   },
 ]
 
+export const SEED_PRODUCT_SLUGS = new Set(SEED_PRODUCTS.map((product) => product.slug))
+
 export const SEED_COUPONS: SeedCoupon[] = [
   { code: 'KAPRI10', type: 'percent', value: 10, label: '10% off', active: true },
   { code: 'BIENVENIDA15', type: 'percent', value: 15, label: '15% off primera compra', active: true },

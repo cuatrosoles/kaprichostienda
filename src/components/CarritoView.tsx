@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import { type CatalogCoupon, formatARS, POINT_VALUE_ARS, POINTS_PER_THOUSAND } from '@/data/catalog'
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 import type { PostalLocation } from '@/lib/postalCode'
+import CatalogImage from '@/components/store/CatalogImage'
 
 type ShippingOption = { id: string; name: string; cost: number; eta: string }
 
@@ -198,7 +199,7 @@ export default function CarritoView() {
           ) : (
             items.map((item) => (
               <div key={item.sku} className="flex gap-3 p-4">
-                <img src={item.image} alt="" className="h-24 w-16 object-cover" />
+                <CatalogImage src={item.image} alt={item.title} className="h-24 w-16 shrink-0 object-cover" />
                 <div className="flex-1">
                   <p className="font-medium">{item.title}</p>
                   <p className="text-xs text-neutral-500">

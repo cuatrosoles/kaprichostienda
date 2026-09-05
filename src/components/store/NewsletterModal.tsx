@@ -36,7 +36,7 @@ export default function NewsletterModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="grid w-full max-w-3xl overflow-hidden rounded-md bg-white md:grid-cols-2">
+      <div className="w-full max-w-md overflow-hidden rounded-md bg-white">
         <div className="p-8">
           <button type="button" onClick={close} className="float-right text-neutral-400" aria-label="Cerrar">
             ×
@@ -56,7 +56,6 @@ export default function NewsletterModal() {
             </form>
           )}
         </div>
-        <img src="/catalog/prod-campera.jpg" alt="" className="hidden h-full object-cover md:block" />
       </div>
     </div>
   )

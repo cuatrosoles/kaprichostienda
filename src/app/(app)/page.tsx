@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CatalogImage from '@/components/store/CatalogImage'
 import ProductCard from '@/components/store/ProductCard'
 import HeroSlider from '@/components/store/HeroSlider'
 import { topLevelCategories } from '@/data/catalog'
@@ -9,9 +10,8 @@ export default async function HomePage() {
   const products = await getStoreProducts()
   const hero = await getHomeHero()
   const homeCategories = topLevelCategories(categories).filter((c) => c.showOnHome !== false)
-  const news = products.filter((p) => p.isNew)
   const featured = products.filter((p) => p.featured)
-  const showcase = news.length ? news : featured
+  const news = products.filter((p) => p.isNew)
 
   return (
     <>
@@ -45,9 +45,31 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 gap-5 md:grid-cols-3">
             {homeCategories.map((c) => (
               <Link key={c.slug} href={`/productos?categoria=${c.slug}`} className="group">
-                <img src={c.image} alt={c.title} className="aspect-[4/5] w-full rounded-md object-cover" />
-                <h2 className="mt-3 text-center text-sm font-semibold">{c.title}</h2>
+                {c.image ? (
+                  <CatalogImage src={c.image} alt={c.title} className="aspect-[4/5] w-full rounded-md object-cover" />
+                ) : null}
+                <h2 className={`${c.image ? 'mt-3' : 'rounded-md border border-neutral-200 py-8'} text-center text-sm font-semibold`}>
+                  {c.title}
+                </h2>
               </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="mb-6 flex items-end justify-between">
+          <h2 className="font-display text-3xl">Destacados</h2>
+          <Link href="/productos" className="text-xs uppercase tracking-nav">
+            Ver todo
+          </Link>
+        </div>
+        {featured.length === 0 ? (
+          <p className="text-sm text-neutral-500">Todavía no hay productos destacados.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {featured.map((p) => (
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         )}
@@ -60,11 +82,11 @@ export default async function HomePage() {
             Ver todo
           </Link>
         </div>
-        {showcase.length === 0 ? (
-          <p className="text-sm text-neutral-500">No hay productos publicados todavía.</p>
+        {news.length === 0 ? (
+          <p className="text-sm text-neutral-500">Todavía no hay nuevos ingresos.</p>
         ) : (
           <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
-            {showcase.map((p) => (
+            {news.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}
           </div>

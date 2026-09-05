@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { formatARS, type CatalogProduct } from '@/data/catalog'
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
+import CatalogImage from '@/components/store/CatalogImage'
 
 export default function ProductCard({ product }: { product: CatalogProduct }) {
   const commerce = useCommerce()
@@ -12,7 +13,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
   return (
     <article className="group">
       <Link href={`/productos/${product.slug}`} className="block overflow-hidden rounded-md">
-        <img
+        <CatalogImage
           src={product.image}
           alt={product.title}
           className="aspect-[3/4] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
