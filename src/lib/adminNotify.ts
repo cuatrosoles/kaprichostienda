@@ -1,16 +1,9 @@
 import type { Payload } from 'payload'
 import type { Product, StoreSetting } from '@/payload-types'
 import { formatARS } from '@/data/catalog'
+import { escapeEmailHtml, renderStoreEmail, storePublicUrl } from '@/email/storeEmailTemplate'
 
 export type AdminNotifyKind = 'sales' | 'registrations' | 'contact' | 'lowStock'
-
-function escapeHtml(value: unknown) {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
 
 export function productTotalStock(doc: Pick<Product, 'stock' | 'variants'>) {
   const variants = doc.variants || []
@@ -77,43 +70,83 @@ export async function notifySale(payload: Payload, order: {
     product?: number | { title?: string | null } | null
   }> | null
 }) {
-  const lines = (order.items || []).map((item) => {
-    const title =
-      item.product && typeof item.product === 'object' ? item.product.title || 'Producto' : 'Producto'
-    const qty = Number(item.quantity || 0)
-    const extra = [item.color, item.size, item.variantSku].filter(Boolean).join(' · ')
-    return `<li>${escapeHtml(title)} × ${qty}${extra ? ` (${escapeHtml(extra)})` : ''}</li>`
+  const paid = order.paymentStatus === 'approved'
+  const lines = (order.items || [])
+    .map((item) => {
+      const title =
+        item.product && typeof item.product === 'object' ? item.product.title || 'Producto' : 'Producto'
+      const qty = Number(item.quantity || 0)
+      const extra = [item.color, item.size, item.variantSku].filter(Boolean).join(' · ')
+      const price = formatARS(Number(item.priceAtPurchase || 0) * qty)
+      return `<tr>
+        <td style="padding:10px 0;border-bottom:1px solid #ece7df;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#0b0b0b;">
+          <strong>${escapeEmailHtml(title)}</strong>${extra ? `<br/><span style="color:#6b6358;font-size:12px;">${escapeEmailHtml(extra)}</span>` : ''}
+        </td>
+        <td style="padding:10px 0;border-bottom:1px solid #ece7df;text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#6b6358;white-space:nowrap;">
+          × ${qty}
+        </td>
+        <td style="padding:10px 0;border-bottom:1px solid #ece7df;text-align:right;font-family:Georgia,'Times New Roman',serif;font-size:14px;color:#0b0b0b;white-space:nowrap;">
+          ${escapeEmailHtml(price)}
+        </td>
+      </tr>`
+    })
+    .join('')
+
+  const email = renderStoreEmail({
+    preheader: paid ? `Venta cobrada #${order.id}` : `Pedido pendiente #${order.id}`,
+    eyebrow: paid ? 'Venta cobrada' : 'Pedido pendiente',
+    title: paid ? 'Se acreditó un pago' : 'Hay un pedido nuevo',
+    intro: paid
+      ? 'Un cliente completó el pago en la tienda. Revisá el detalle para preparar el envío.'
+      : 'Un cliente generó un pedido que todavía figura pendiente de pago.',
+    fields: [
+      { label: 'Pedido', value: `#${order.id}` },
+      { label: 'Estado', value: order.paymentStatus || '' },
+      { label: 'Cliente', value: order.customerName || '' },
+      { label: 'Email', value: order.customerEmail || '' },
+      { label: 'Teléfono', value: order.customerPhone || '' },
+      { label: 'Total', value: formatARS(Number(order.total || 0)) },
+    ],
+    bodyHtml: `
+      <p style="margin:0 0 10px 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#6b6358;">Ítems del pedido</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${lines || '<tr><td>Sin detalle</td></tr>'}</table>
+    `,
+    cta: {
+      href: `${storePublicUrl()}/admin/collections/orders/${order.id}`,
+      label: 'Ver pedido en el panel',
+    },
   })
 
-  const paid = order.paymentStatus === 'approved'
   await notifyAdmin(payload, {
     kind: 'sales',
-    subject: paid
-      ? `Venta cobrada #${order.id} — Kaprichos`
-      : `Pedido pendiente #${order.id} — Kaprichos`,
-    html: `
-      <p>${paid ? 'Se cobró una venta en Kaprichos.' : 'Hay un pedido pendiente de pago en Kaprichos.'}</p>
-      <p><strong>Pedido:</strong> #${escapeHtml(order.id)}<br/>
-      <strong>Estado:</strong> ${escapeHtml(order.paymentStatus || '')}<br/>
-      <strong>Cliente:</strong> ${escapeHtml(order.customerName)} (${escapeHtml(order.customerEmail)})<br/>
-      <strong>Teléfono:</strong> ${escapeHtml(order.customerPhone)}<br/>
-      <strong>Total:</strong> ${escapeHtml(formatARS(Number(order.total || 0)))}</p>
-      <p><strong>Ítems</strong></p>
-      <ul>${lines.join('') || '<li>Sin detalle</li>'}</ul>
-    `,
+    subject: paid ? `Venta cobrada #${order.id} — Kaprichos` : `Pedido pendiente #${order.id} — Kaprichos`,
+    html: email.html,
+    text: email.text,
   })
 }
 
 export async function notifyRegistration(payload: Payload, user: { email: string; name?: string; phone?: string }) {
+  const email = renderStoreEmail({
+    preheader: `Nuevo cliente: ${user.name || user.email}`,
+    eyebrow: 'Nuevo cliente',
+    title: 'Se registró una cuenta',
+    intro: 'Alguien creó una cuenta en Kaprichos. Estos son los datos que dejó en el formulario.',
+    fields: [
+      { label: 'Nombre', value: user.name || '' },
+      { label: 'Email', value: user.email },
+      { label: 'Teléfono', value: user.phone || '' },
+    ],
+    cta: {
+      href: `${storePublicUrl()}/admin/collections/customers`,
+      label: 'Ver clientes',
+    },
+  })
+
   await notifyAdmin(payload, {
     kind: 'registrations',
     subject: `Nuevo cliente — ${user.email}`,
-    html: `
-      <p>Se registró un cliente en la tienda.</p>
-      <p><strong>Nombre:</strong> ${escapeHtml(user.name)}<br/>
-      <strong>Email:</strong> ${escapeHtml(user.email)}<br/>
-      <strong>Teléfono:</strong> ${escapeHtml(user.phone)}</p>
-    `,
+    html: email.html,
+    text: email.text,
   })
 }
 
@@ -121,17 +154,31 @@ export async function notifyContact(
   payload: Payload,
   data: { name: string; email: string; phone?: string; message: string },
 ) {
+  const email = renderStoreEmail({
+    preheader: `Mensaje de ${data.name}`,
+    eyebrow: 'Contacto web',
+    title: 'Nuevo mensaje de un cliente',
+    intro: 'Llegó una consulta desde el formulario de contacto de la tienda.',
+    fields: [
+      { label: 'Nombre', value: data.name },
+      { label: 'Email', value: data.email },
+      { label: 'Teléfono', value: data.phone || '' },
+    ],
+    bodyHtml: `
+      <p style="margin:0 0 8px 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#6b6358;">Mensaje</p>
+      <p style="margin:0;padding:16px 18px;background:#f7f4ef;border-left:3px solid #c4a574;border-radius:0 8px 8px 0;color:#0b0b0b;">
+        ${escapeEmailHtml(data.message).replace(/\n/g, '<br/>')}
+      </p>
+    `,
+    footerNote: 'Podés responder este correo para escribirle directo al cliente.',
+  })
+
   return notifyAdmin(payload, {
     kind: 'contact',
     subject: `Contacto web — ${data.name}`,
     replyTo: data.email,
-    html: `
-      <p>Nuevo mensaje desde el formulario de contacto.</p>
-      <p><strong>Nombre:</strong> ${escapeHtml(data.name)}<br/>
-      <strong>Email:</strong> ${escapeHtml(data.email)}<br/>
-      <strong>Teléfono:</strong> ${escapeHtml(data.phone)}</p>
-      <p>${escapeHtml(data.message).replace(/\n/g, '<br/>')}</p>
-    `,
+    html: email.html,
+    text: email.text,
   })
 }
 
@@ -147,16 +194,28 @@ export async function notifyLowStockIfCrossed(
   const before = productTotalStock(previous)
   const after = productTotalStock(current)
   if (before > threshold && after <= threshold) {
+    const email = renderStoreEmail({
+      preheader: `Stock bajo: ${current.title}`,
+      eyebrow: 'Alerta de stock',
+      title: 'Un producto llegó al mínimo',
+      intro: `El stock de este producto cruzó el umbral configurado de ${threshold} unidades.`,
+      fields: [
+        { label: 'Producto', value: current.title },
+        { label: 'SKU', value: current.sku || '' },
+        { label: 'Stock anterior', value: String(before) },
+        { label: 'Stock actual', value: String(after) },
+      ],
+      cta: {
+        href: `${storePublicUrl()}/admin/collections/products/${current.id}`,
+        label: 'Abrir producto',
+      },
+    })
+
     await notifyAdmin(payload, {
       kind: 'lowStock',
       subject: `Stock bajo — ${current.title}`,
-      html: `
-        <p>Un producto llegó al mínimo de stock configurado (${threshold} unidades).</p>
-        <p><strong>Producto:</strong> ${escapeHtml(current.title)}<br/>
-        <strong>SKU:</strong> ${escapeHtml(current.sku)}<br/>
-        <strong>Stock anterior:</strong> ${before}<br/>
-        <strong>Stock actual:</strong> ${after}</p>
-      `,
+      html: email.html,
+      text: email.text,
     })
   }
 }

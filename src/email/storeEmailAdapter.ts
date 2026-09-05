@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { htmlToText, wrapStoreEmailHtml } from '@/email/storeEmailTemplate'
 
 type EmailMessage = {
   to?: string | string[]
@@ -45,6 +46,8 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
       }
 
       const from = message.from || formatFrom(fromName, fromAddress)
+      const html = wrapStoreEmailHtml(message.html || '', message.subject)
+      const text = message.text || (html ? htmlToText(html) : undefined)
 
       if (!host || !user || !pass) {
         console.info('[Kaprichos] Email sin SMTP — se registra en consola:')
@@ -55,8 +58,8 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
               to: message.to,
               replyTo: message.replyTo,
               subject: message.subject,
-              text: message.text,
-              html: message.html,
+              text,
+              html,
             },
             null,
             2,
@@ -78,8 +81,8 @@ export function storeEmailAdapter({ payload }: { payload: Payload }) {
         to: message.to,
         replyTo: message.replyTo,
         subject: message.subject,
-        html: message.html,
-        text: message.text,
+        html,
+        text,
       })
     },
   }

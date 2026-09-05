@@ -106,11 +106,21 @@ export async function POST(req: Request) {
         data: { verifyToken: token, verifyTokenExpires: expires, emailVerified: false },
         overrideAccess: true,
       })
-      const url = `${(process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/$/, '')}/api/auth/verify?token=${encodeURIComponent(token)}`
+      const { renderStoreEmail, storePublicUrl } = await import('@/email/storeEmailTemplate')
+      const url = `${storePublicUrl()}/api/auth/verify?token=${encodeURIComponent(token)}`
+      const mail = renderStoreEmail({
+        preheader: 'Confirmá tu email para activar la cuenta',
+        eyebrow: 'Bienvenida',
+        title: `Hola${name ? `, ${name}` : ''}`,
+        intro: 'Gracias por registrarte en Kaprichos. Tocá el botón para confirmar tu email y activar la cuenta.',
+        cta: { href: url, label: 'Verificar email' },
+        footerNote: 'Si no creaste esta cuenta, podés ignorar este mensaje. El enlace vence en 24 horas.',
+      })
       await payload.sendEmail({
         to: email,
         subject: 'Confirmá tu email — Kaprichos',
-        html: `<p>Hola ${name || ''},</p><p>Confirmá tu cuenta:</p><p><a href="${url}">Verificar email</a></p>`,
+        html: mail.html,
+        text: mail.text,
       })
       return NextResponse.json({
         ok: true,

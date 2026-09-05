@@ -1,12 +1,9 @@
 import { APIError, type CollectionConfig } from 'payload'
 import { adminOnly, adminOrSelfCustomer, isAdminUser } from '@/access/roles'
+import { renderStoreEmail, storePublicUrl } from '@/email/storeEmailTemplate'
 
 function storeAuth(req: { context?: Record<string, unknown> }) {
   return req.context?.storeAuth === true
-}
-
-function storeUrl() {
-  return (process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/$/, '')
 }
 
 export const Customers: CollectionConfig = {
@@ -31,16 +28,15 @@ export const Customers: CollectionConfig = {
     forgotPassword: {
       generateEmailSubject: () => 'Restablecé tu contraseña — Kaprichos',
       generateEmailHTML: ({ token } = {}) => {
-        const url = `${storeUrl()}/cuenta/restablecer?token=${encodeURIComponent(token || '')}`
-        return `
-          <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#111">
-            <h1 style="font-size:22px">Kaprichos Tienda</h1>
-            <p>Recibimos un pedido para restablecer tu contraseña.</p>
-            <p><a href="${url}" style="display:inline-block;background:#111;color:#fff;padding:12px 20px;text-decoration:none">Elegir nueva contraseña</a></p>
-            <p style="font-size:12px;color:#666">Si no fuiste vos, ignorá este correo. El enlace vence en una hora.</p>
-            <p style="font-size:12px;word-break:break-all;color:#666">${url}</p>
-          </div>
-        `
+        const url = `${storePublicUrl()}/cuenta/restablecer?token=${encodeURIComponent(token || '')}`
+        return renderStoreEmail({
+          preheader: 'Elegí una nueva contraseña para tu cuenta',
+          eyebrow: 'Seguridad de la cuenta',
+          title: 'Restablecé tu contraseña',
+          intro: 'Recibimos un pedido para cambiar la contraseña de tu cuenta Kaprichos. El enlace vale por una hora.',
+          cta: { href: url, label: 'Elegir nueva contraseña' },
+          footerNote: `Si no fuiste vos, ignorá este correo. También podés copiar este enlace: ${url}`,
+        }).html
       },
     },
   },
