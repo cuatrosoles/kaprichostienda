@@ -34,6 +34,10 @@ export default function LoginForm() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setError('')
+    if (config.captchaEnabled && !captchaToken) {
+      setError('Completá el captcha para ingresar.')
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/login', {

@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { PublicAuthConfig, PublicCustomer } from '@/lib/auth'
 
 type AuthContextValue = {
@@ -33,7 +33,16 @@ export function AuthProvider({
   initialConfig: PublicAuthConfig
 }) {
   const [user, setUser] = useState(initialUser)
-  const [config] = useState(initialConfig || fallbackConfig)
+  const [config, setConfig] = useState(initialConfig || fallbackConfig)
+
+  useEffect(() => {
+    fetch('/api/auth/config')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.config) setConfig(data.config)
+      })
+      .catch(() => {})
+  }, [])
 
   const refresh = useCallback(async () => {
     const res = await fetch('/api/auth/me', { credentials: 'include' })

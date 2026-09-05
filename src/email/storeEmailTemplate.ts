@@ -71,7 +71,6 @@ function fieldsTable(fields: EmailField[]) {
 
 export function renderStoreEmail(content: StoreEmailContent): { html: string; text: string } {
   const site = storePublicUrl()
-  const logo = `${site}/logo-kaprichos.webp`
   const preheader = content.preheader || content.intro || content.title
   const fields = fieldsTable(content.fields || [])
   const intro = content.intro
@@ -110,12 +109,9 @@ export function renderStoreEmail(content: StoreEmailContent): { html: string; te
       <td align="center">
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(11,11,11,0.06);">
           <tr>
-            <td style="background:#1e4d32;padding:28px 24px 24px 24px;text-align:center;">
-              <a href="${site}" style="text-decoration:none;">
-                <img src="${logo}" alt="Kaprichos" width="72" height="72" style="display:block;margin:0 auto 12px auto;border-radius:50%;border:2px solid #c4a574;object-fit:cover;" />
-              </a>
-              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:26px;letter-spacing:0.08em;color:#f7f4ef;">Kaprichos</p>
-              <p style="margin:6px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#c4a574;">Tienda de indumentaria</p>
+            <td style="background:#1e4d32;padding:32px 28px;text-align:center;">
+              <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1;letter-spacing:0.08em;color:#f7f4ef;">Kaprichos</p>
+              <p style="margin:10px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:#c4a574;">Tienda de indumentaria</p>
             </td>
           </tr>
           <tr>

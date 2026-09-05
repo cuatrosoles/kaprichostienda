@@ -1,17 +1,13 @@
 import type { StoreSetting } from '@/payload-types'
-import { getStoreSettings } from '@/lib/auth'
+import { getPublicAuthConfig, getStoreSettings } from '@/lib/auth'
 
 export async function verifyCaptcha(token: string | undefined, settings: StoreSetting) {
-  const provider = settings.captchaProvider === 'recaptcha' ? 'recaptcha' : 'turnstile'
-  const envSite =
-    provider === 'recaptcha'
-      ? process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY
-      : process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  const pub = getPublicAuthConfig(settings)
+  const provider = pub.captchaProvider
   const envSecret =
     provider === 'recaptcha' ? process.env.RECAPTCHA_SECRET_KEY : process.env.TURNSTILE_SECRET_KEY
-  const siteKey = (envSite || settings.captchaSiteKey || '').trim()
   const secret = (envSecret || settings.captchaSecretKey || '').trim()
-  const enabled = Boolean(settings.captchaEnabled && siteKey)
+  const enabled = pub.captchaEnabled
 
   if (!enabled) return { ok: true as const }
 
