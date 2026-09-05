@@ -25,6 +25,19 @@ export default function OrderReturnView() {
     if (approved || pending) clear()
   }, [approved, pending, clear])
 
+  useEffect(() => {
+    if (!paymentId) return
+    void fetch('/api/orders/sync-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        paymentId,
+        orderId,
+        preferenceId: firstParam(params, 'preference_id'),
+      }),
+    }).catch(() => {})
+  }, [paymentId, orderId, params])
+
   const title = approved ? 'Pago confirmado' : pending ? 'Pago en proceso' : failed ? 'El pago no se completó' : 'Volviste del pago'
   const text = approved
     ? 'Gracias por tu compra. Ya registramos el pedido y te vamos a contactar para coordinar la entrega o el retiro.'

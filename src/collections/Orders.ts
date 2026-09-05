@@ -26,9 +26,10 @@ export const Orders: CollectionConfig = {
   hooks: {
     afterChange: [
       async ({ doc, previousDoc, req, operation }) => {
-        if (operation !== 'update') return
-        if (doc.paymentStatus !== 'approved' || previousDoc?.paymentStatus === 'approved') return
-        const { notifySale } = await import('@/lib/adminNotify')
+        if (operation !== 'update' || !previousDoc) return
+        if (doc.paymentStatus === previousDoc.paymentStatus) return
+        if (doc.paymentStatus !== 'approved' && doc.paymentStatus !== 'rejected') return
+        const { notifyCustomerOrder, notifySale } = await import('@/lib/adminNotify')
         const full = await req.payload.findByID({
           collection: 'orders',
           id: doc.id,
@@ -37,6 +38,7 @@ export const Orders: CollectionConfig = {
           req,
         })
         await notifySale(req.payload, full)
+        await notifyCustomerOrder(req.payload, full, doc.paymentStatus === 'approved' ? 'paid' : 'rejected')
       },
     ],
   },

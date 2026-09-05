@@ -175,7 +175,7 @@ export async function POST(req: Request) {
     }
 
     if (payMethod === 'transfer') {
-      const { notifySale } = await import('@/lib/adminNotify')
+      const { notifyCustomerOrder, notifySale } = await import('@/lib/adminNotify')
       const full = await payload.findByID({
         collection: 'orders',
         id: orderRecord.id,
@@ -183,6 +183,7 @@ export async function POST(req: Request) {
         overrideAccess: true,
       })
       await notifySale(payload, full)
+      await notifyCustomerOrder(payload, full, 'transfer')
       return NextResponse.json({
         ok: true,
         orderId: orderRecord.id,
@@ -228,6 +229,7 @@ export async function POST(req: Request) {
         items: mpItems,
         payer: { name: customer.name, email: customer.email },
         external_reference: String(orderRecord.id),
+        metadata: { order_id: String(orderRecord.id) },
         statement_descriptor: 'KAPRICHOS',
         back_urls: {
           success: `${site}/pedido/gracias`,

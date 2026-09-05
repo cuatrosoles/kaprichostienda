@@ -54,13 +54,14 @@ export async function notifyAdmin(
   }
 }
 
-export async function notifySale(payload: Payload, order: {
+type OrderMail = {
   id: number | string
   customerName?: string | null
   customerEmail?: string | null
   customerPhone?: string | null
   total?: number | null
   paymentStatus?: string | null
+  shippingMethod?: string | null
   items?: Array<{
     quantity?: number | null
     size?: string | null
@@ -69,9 +70,10 @@ export async function notifySale(payload: Payload, order: {
     priceAtPurchase?: number | null
     product?: number | { title?: string | null } | null
   }> | null
-}) {
-  const paid = order.paymentStatus === 'approved'
-  const lines = (order.items || [])
+}
+
+function orderItemRows(order: OrderMail) {
+  return (order.items || [])
     .map((item) => {
       const title =
         item.product && typeof item.product === 'object' ? item.product.title || 'Producto' : 'Producto'
@@ -91,14 +93,26 @@ export async function notifySale(payload: Payload, order: {
       </tr>`
     })
     .join('')
+}
+
+export async function notifySale(payload: Payload, order: OrderMail) {
+  const paid = order.paymentStatus === 'approved'
+  const rejected = order.paymentStatus === 'rejected'
+  const lines = orderItemRows(order)
 
   const email = renderStoreEmail({
-    preheader: paid ? `Venta cobrada #${order.id}` : `Pedido pendiente #${order.id}`,
-    eyebrow: paid ? 'Venta cobrada' : 'Pedido pendiente',
-    title: paid ? 'Se acreditó un pago' : 'Hay un pedido nuevo',
+    preheader: paid
+      ? `Venta cobrada #${order.id}`
+      : rejected
+        ? `Pago rechazado #${order.id}`
+        : `Pedido pendiente #${order.id}`,
+    eyebrow: paid ? 'Venta cobrada' : rejected ? 'Pago no acreditado' : 'Pedido pendiente',
+    title: paid ? 'Se acreditó un pago' : rejected ? 'Un pago no se acreditó' : 'Hay un pedido nuevo',
     intro: paid
       ? 'Un cliente completó el pago en la tienda. Revisá el detalle para preparar el envío.'
-      : 'Un cliente generó un pedido que todavía figura pendiente de pago.',
+      : rejected
+        ? 'Mercado Pago rechazó o canceló el pago de este pedido.'
+        : 'Un cliente generó un pedido que todavía figura pendiente de pago.',
     fields: [
       { label: 'Pedido', value: `#${order.id}` },
       { label: 'Estado', value: order.paymentStatus || '' },
@@ -119,10 +133,70 @@ export async function notifySale(payload: Payload, order: {
 
   await notifyAdmin(payload, {
     kind: 'sales',
-    subject: paid ? `Venta cobrada #${order.id} — Kaprichos` : `Pedido pendiente #${order.id} — Kaprichos`,
+    subject: paid
+      ? `Venta cobrada #${order.id} — Kaprichos`
+      : rejected
+        ? `Pago rechazado #${order.id} — Kaprichos`
+        : `Pedido pendiente #${order.id} — Kaprichos`,
     html: email.html,
     text: email.text,
   })
+}
+
+export async function notifyCustomerOrder(
+  payload: Payload,
+  order: OrderMail,
+  kind: 'paid' | 'rejected' | 'transfer',
+) {
+  const to = String(order.customerEmail || '').trim()
+  if (!to || !to.includes('@')) return false
+  const paid = kind === 'paid'
+  const rejected = kind === 'rejected'
+  const email = renderStoreEmail({
+    preheader: paid
+      ? `Confirmamos tu pedido #${order.id}`
+      : rejected
+        ? `No se acreditó el pago del pedido #${order.id}`
+        : `Registramos tu pedido #${order.id}`,
+    eyebrow: paid ? 'Pago confirmado' : rejected ? 'Pago no acreditado' : 'Pedido recibido',
+    title: paid ? `Gracias, ${order.customerName || ''}` : rejected ? 'El pago no se completó' : 'Pedido registrado',
+    intro: paid
+      ? 'Recibimos tu pago. Vamos a preparar el pedido y te contactamos para coordinar la entrega o el retiro.'
+      : rejected
+        ? 'Mercado Pago no acreditó el pago. Si querés, volvé a intentar la compra desde la tienda.'
+        : 'Registramos tu pedido. Completá la transferencia para confirmarlo. Cuando veamos el pago, lo preparamos.',
+    fields: [
+      { label: 'Pedido', value: `#${order.id}` },
+      { label: 'Total', value: formatARS(Number(order.total || 0)) },
+      { label: 'Envío o retiro', value: order.shippingMethod || '' },
+    ],
+    bodyHtml: `
+      <p style="margin:0 0 10px 0;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#6b6358;">Tu compra</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${orderItemRows(order) || '<tr><td>Sin detalle</td></tr>'}</table>
+    `,
+    cta: {
+      href: paid || kind === 'transfer' ? `${storePublicUrl()}/cuenta` : `${storePublicUrl()}/carrito`,
+      label: paid || kind === 'transfer' ? 'Ver mi cuenta' : 'Volver al carrito',
+    },
+    footerNote: 'Si necesitás ayuda, respondé este correo o escribinos desde Contacto.',
+  })
+
+  try {
+    await payload.sendEmail({
+      to,
+      subject: paid
+        ? `Pedido #${order.id} confirmado — Kaprichos`
+        : rejected
+          ? `Pedido #${order.id}: el pago no se acreditó — Kaprichos`
+          : `Pedido #${order.id} registrado — Kaprichos`,
+      html: email.html,
+      text: email.text,
+    })
+    return true
+  } catch (error) {
+    console.error('[Kaprichos] No se pudo avisar al cliente del pedido:', error)
+    return false
+  }
 }
 
 export async function notifyRegistration(payload: Payload, user: { email: string; name?: string; phone?: string }) {
