@@ -137,7 +137,7 @@ export const StoreSettings: GlobalConfig = {
                   label: 'Access Token de Mercado Pago',
                   admin: {
                     description:
-                      'Lo sacás en Tus integraciones → Credenciales. Producción: APP_USR-…  Pruebas: TEST-…  Si lo dejás vacío, se usa MERCADOPAGO_ACCESS_TOKEN del servidor.',
+                      'Tiene que ser de la cuenta de Kaprichos, no de otro proyecto. En developers.mercadopago.com creá una aplicación llamada Kaprichos y copiá el Access Token de producción (APP_USR-…). Si acá o en Vercel (MERCADOPAGO_ACCESS_TOKEN) queda el token de TicketsTransfer/Alquilalo, el checkout va a mostrar esa marca.',
                     condition: (_, sibling) => sibling?.mpEnabled !== false,
                   },
                 },
