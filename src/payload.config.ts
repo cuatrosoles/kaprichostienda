@@ -23,6 +23,7 @@ import {
   getCloudinaryEnv,
   isCloudinaryConfigured,
 } from './storage/cloudinaryAdapter'
+import { originList } from './lib/origins'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -70,40 +71,6 @@ function postgresPool() {
 }
 
 const { folder: cloudinaryFolder } = getCloudinaryEnv()
-
-function originList() {
-  const origins = new Set<string>()
-  const add = (raw?: string | null) => {
-    if (!raw) return
-    for (const piece of raw.split(',')) {
-      let value = piece.trim().replace(/\/$/, '')
-      if (!value) continue
-      if (!/^https?:\/\//i.test(value)) value = `https://${value}`
-      try {
-        const url = new URL(value)
-        origins.add(url.origin)
-        const host = url.hostname
-        if (host.startsWith('www.')) {
-          origins.add(`${url.protocol}//${host.slice(4)}`)
-        } else if (host.includes('.')) {
-          origins.add(`${url.protocol}//www.${host}`)
-        }
-      } catch {
-        origins.add(value)
-      }
-    }
-  }
-
-  add(process.env.NEXT_PUBLIC_SERVER_URL)
-  add(process.env.NEXT_PUBLIC_WEBHOOK_URL)
-  add(process.env.ALLOWED_ORIGINS)
-  add(process.env.VERCEL_PROJECT_PRODUCTION_URL)
-  add(process.env.VERCEL_URL)
-  add(process.env.VERCEL_BRANCH_URL)
-  add('http://localhost:3000')
-  add('http://127.0.0.1:3000')
-  return [...origins]
-}
 
 const publicOrigins = originList()
 const serverURL = (process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/$/, '')

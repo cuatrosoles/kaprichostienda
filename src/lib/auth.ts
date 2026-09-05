@@ -4,6 +4,7 @@ import { unstable_cache } from 'next/cache'
 import { cache } from 'react'
 import type { Customer, StoreSetting } from '@/payload-types'
 import { withPayload } from '@/lib/payload'
+import { requestOriginAllowed } from '@/lib/origins'
 
 export const CUSTOMER_COOKIE = 'kaprichos-customer-token'
 
@@ -127,15 +128,7 @@ export function clientIp(req: Request) {
 }
 
 export function assertSameOrigin(req: Request) {
-  const origin = req.headers.get('origin')
-  if (!origin) return
-  const allowed = (process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000').replace(/\/$/, '')
-  const extra = (process.env.ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((s) => s.trim().replace(/\/$/, ''))
-    .filter(Boolean)
-  const ok = [allowed, ...extra].some((base) => origin === base || origin.startsWith(`${base}`))
-  if (!ok) {
+  if (!requestOriginAllowed(req)) {
     throw new Error('Origen no permitido')
   }
 }
