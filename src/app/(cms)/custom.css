@@ -183,3 +183,320 @@ aside.nav,
 .kap-color-field .field-description {
   margin-top: 0.4rem;
 }
+
+.nav-group .nav-group__label {
+  color: #d4d4d8 !important;
+}
+
+.kap-analytics-widget {
+  margin: 1.5rem 0 0.5rem;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  border: 1px solid #d4d4d8;
+}
+
+.kap-analytics-widget__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.kap-analytics-widget__eyebrow,
+.kap-analytics__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #52525b;
+}
+
+.kap-analytics-widget__title {
+  margin: 0.2rem 0 0;
+  font-size: 1.35rem;
+}
+
+.kap-analytics-widget__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.kap-analytics-widget__grid div {
+  padding: 0.75rem 0.85rem;
+  background: #f4f4f5;
+}
+
+.kap-analytics-widget__grid strong {
+  display: block;
+  font-size: 1.35rem;
+}
+
+.kap-analytics-widget__grid span {
+  font-size: 12px;
+  color: #52525b;
+}
+
+.kap-analytics {
+  padding-bottom: 3rem;
+}
+
+.kap-analytics__wrap.is-loading {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+.kap-analytics__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.5rem 0 1.25rem;
+}
+
+.kap-analytics__header h1 {
+  margin: 0.15rem 0 0.4rem;
+  font-size: 2rem;
+}
+
+.kap-analytics__header p {
+  max-width: 42rem;
+  margin: 0;
+  color: #3f3f46;
+}
+
+.kap-analytics__ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.kap-analytics__ranges button,
+.kap-analytics__ghost {
+  border: 1px solid #a1a1aa;
+  background: #fff;
+  color: #111;
+  padding: 0.45rem 0.8rem;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.kap-analytics__ranges button.is-active {
+  background: #3f3f46;
+  border-color: #3f3f46;
+  color: #fff;
+}
+
+.kap-analytics__kpis {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.kap-analytics__kpis article,
+.kap-analytics__card {
+  background: #fff;
+  border: 1px solid #d4d4d8;
+  padding: 1rem 1.1rem;
+}
+
+.kap-analytics__kpis span {
+  display: block;
+  font-size: 12px;
+  color: #52525b;
+}
+
+.kap-analytics__kpis strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 1.6rem;
+}
+
+.kap-analytics__card {
+  margin-bottom: 1rem;
+}
+
+.kap-analytics__card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.kap-analytics__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.kap-analytics__card-head h2 {
+  margin-bottom: 0.2rem;
+}
+
+.kap-analytics__card-head p,
+.kap-analytics__empty {
+  margin: 0;
+  color: #52525b;
+  font-size: 13px;
+}
+
+.kap-analytics__card-head a {
+  color: #111;
+}
+
+.kap-analytics__chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 160px;
+  padding-top: 0.5rem;
+}
+
+.kap-analytics__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.kap-analytics__col-bars {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.kap-analytics__col-bars span,
+.kap-analytics__col-bars em,
+.kap-analytics__legend i,
+.kap-analytics__legend em,
+.kap-analytics__bars i,
+.kap-analytics__funnel i {
+  display: block;
+  background: #3f3f46;
+}
+
+.kap-analytics__col-bars em,
+.kap-analytics__legend em {
+  background: #a1a1aa;
+}
+
+.kap-analytics__col small {
+  margin-top: 0.35rem;
+  font-size: 10px;
+  color: #71717a;
+}
+
+.kap-analytics__legend {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin: 0.75rem 0 0;
+  font-size: 12px;
+  color: #52525b;
+}
+
+.kap-analytics__legend i,
+.kap-analytics__legend em {
+  width: 12px;
+  height: 12px;
+  margin-right: 0.35rem;
+}
+
+.kap-analytics__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.kap-analytics__grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.kap-analytics__bars,
+.kap-analytics__funnel,
+.kap-analytics__bots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kap-analytics__bars li,
+.kap-analytics__funnel li {
+  margin-bottom: 0.65rem;
+}
+
+.kap-analytics__bars div,
+.kap-analytics__funnel div,
+.kap-analytics__bots li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 13px;
+}
+
+.kap-analytics__bars i,
+.kap-analytics__funnel i {
+  height: 6px;
+  margin-top: 0.3rem;
+  max-width: 100%;
+}
+
+.kap-analytics__bots li {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #e4e4e7;
+}
+
+.kap-analytics__table-wrap {
+  overflow-x: auto;
+}
+
+.kap-analytics__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.kap-analytics__table th,
+.kap-analytics__table td {
+  text-align: left;
+  padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid #e4e4e7;
+  vertical-align: top;
+}
+
+.kap-analytics__table small {
+  display: block;
+  color: #71717a;
+}
+
+.kap-analytics__empty code {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.2rem 0.4rem;
+  background: #f4f4f5;
+}
+
+@media (max-width: 1100px) {
+  .kap-analytics__kpis,
+  .kap-analytics-widget__grid,
+  .kap-analytics__grid,
+  .kap-analytics__grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .kap-analytics__kpis,
+  .kap-analytics-widget__grid,
+  .kap-analytics__grid,
+  .kap-analytics__grid--2 {
+    grid-template-columns: 1fr;
+  }
+}

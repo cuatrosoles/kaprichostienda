@@ -11,6 +11,7 @@ import CartDrawer from '@/components/store/CartDrawer'
 import WhatsAppButton from '@/components/store/WhatsAppButton'
 import CookieBanner from '@/components/store/CookieBanner'
 import NewsletterModal from '@/components/store/NewsletterModal'
+import AnalyticsTracker from '@/components/store/AnalyticsTracker'
 import type { CatalogCategory } from '@/data/catalog'
 import type { PublicAuthConfig, PublicCustomer } from '@/lib/auth'
 import type { PublicCommerce } from '@/lib/storeCommerce'
@@ -40,6 +41,7 @@ export default function StoreShell({
           <WhatsAppButton />
           <CookieBanner />
           <NewsletterModal />
+          <AnalyticsTracker />
         </CartProvider>
       </CommerceProvider>
     </AuthProvider>

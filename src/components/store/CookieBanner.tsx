@@ -14,7 +14,8 @@ export default function CookieBanner() {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 flex flex-col items-start justify-between gap-3 border-t bg-white px-4 py-3 text-sm md:flex-row md:items-center">
       <p>
-        Al navegar por este sitio <strong>aceptás el uso de cookies</strong> para agilizar tu experiencia de compra.
+        Al navegar por este sitio <strong>aceptás el uso de cookies</strong> para agilizar la compra y medir
+        visitas de forma anónima (dispositivo, campaña y ubicación aproximada).
       </p>
       <button
         type="button"

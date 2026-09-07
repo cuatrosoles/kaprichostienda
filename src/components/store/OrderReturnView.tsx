@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
+import { trackStoreEvent } from '@/lib/analytics/client'
 
 function firstParam(params: URLSearchParams, key: string) {
   return params.getAll(key).filter(Boolean)[0] || ''
@@ -23,6 +24,7 @@ export default function OrderReturnView() {
 
   useEffect(() => {
     if (approved || pending) clear()
+    if (approved) trackStoreEvent('purchase', { path: '/pedido/gracias' })
   }, [approved, pending, clear])
 
   useEffect(() => {

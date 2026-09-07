@@ -7,7 +7,7 @@ export const StoreSettings: GlobalConfig = {
   lockDocuments: false,
   admin: {
     group: 'Configuración de la tienda',
-    description: 'Cuentas, pagos, envíos, avisos, captcha y correo SMTP.',
+    description: 'Cuentas, pagos, envíos, avisos, analítica, captcha y correo SMTP.',
   },
   access: {
     read: () => true,
@@ -502,6 +502,44 @@ export const StoreSettings: GlobalConfig = {
                 description:
                   'Si el stock total del producto (suma de variantes) pasa de estar por encima de este número a igual o menor, se envía el email.',
                 condition: (_, sibling) => sibling?.lowStockEnabled !== false,
+              },
+            },
+          ],
+        },
+        {
+          label: 'Analítica',
+          fields: [
+            {
+              name: 'analyticsEnabled',
+              type: 'checkbox',
+              defaultValue: true,
+              label: 'Registrar visitas de la tienda',
+              admin: {
+                description:
+                  'Mide sesiones, únicos, rebotes, campañas UTM y ubicación aproximada. Es analítica propia (no Google). No se guarda la IP, solo un hash.',
+              },
+            },
+            {
+              name: 'analyticsTrackBots',
+              type: 'checkbox',
+              defaultValue: true,
+              label: 'Registrar bots e indexadores (Google, Bing, redes, etc.)',
+              admin: {
+                description: 'Sirve para ver qué arañas recorren el catálogo. No cuentan como visitas humanas.',
+                condition: (_, sibling) => sibling?.analyticsEnabled !== false,
+              },
+            },
+            {
+              name: 'analyticsRetentionDays',
+              type: 'number',
+              defaultValue: 90,
+              min: 14,
+              max: 365,
+              label: 'Conservar sesiones (días)',
+              admin: {
+                description:
+                  'Las sesiones más viejas se borran solas para no llenar el plan free de Supabase (500 MB). 90 días alcanza para campañas de temporada.',
+                condition: (_, sibling) => sibling?.analyticsEnabled !== false,
               },
             },
           ],

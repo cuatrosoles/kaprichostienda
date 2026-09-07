@@ -75,6 +75,7 @@ export interface Config {
     orders: Order;
     coupons: Coupon;
     customers: Customer;
+    'visit-sessions': VisitSession;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -89,6 +90,7 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     customers: CustomersSelect<false> | CustomersSelect<true>;
+    'visit-sessions': VisitSessionsSelect<false> | VisitSessionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -427,6 +429,64 @@ export interface Customer {
   collection: 'customers';
 }
 /**
+ * Cada fila es una visita (sesión). El resumen está en Analítica. No se guarda la IP, solo un hash anónimo.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visit-sessions".
+ */
+export interface VisitSession {
+  id: number;
+  sessionId: string;
+  visitorId: string;
+  startedAt: string;
+  lastSeenAt: string;
+  landingPath?: string | null;
+  exitPath?: string | null;
+  pageCount?: number | null;
+  /**
+   * Últimas rutas de la sesión (máx. 40).
+   */
+  pathLog?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  referrer?: string | null;
+  referrerHost?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
+  channel?: ('direct' | 'organic' | 'social' | 'paid' | 'referral' | 'bot') | null;
+  country?: string | null;
+  countryCode?: string | null;
+  region?: string | null;
+  city?: string | null;
+  device?: ('desktop' | 'mobile' | 'tablet' | 'bot') | null;
+  browser?: string | null;
+  os?: string | null;
+  isBot?: boolean | null;
+  botName?: string | null;
+  isBounce?: boolean | null;
+  durationMs?: number | null;
+  reachedCart?: boolean | null;
+  reachedCheckout?: boolean | null;
+  purchased?: boolean | null;
+  newsletter?: boolean | null;
+  conversionValue?: number | null;
+  /**
+   * Hash irreversible. No es la IP real.
+   */
+  ipHash?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -477,6 +537,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'customers';
         value: number | Customer;
+      } | null)
+    | ({
+        relationTo: 'visit-sessions';
+        value: number | VisitSession;
       } | null);
   globalSlug?: string | null;
   user:
@@ -741,6 +805,47 @@ export interface CustomersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visit-sessions_select".
+ */
+export interface VisitSessionsSelect<T extends boolean = true> {
+  sessionId?: T;
+  visitorId?: T;
+  startedAt?: T;
+  lastSeenAt?: T;
+  landingPath?: T;
+  exitPath?: T;
+  pageCount?: T;
+  pathLog?: T;
+  referrer?: T;
+  referrerHost?: T;
+  utmSource?: T;
+  utmMedium?: T;
+  utmCampaign?: T;
+  utmContent?: T;
+  utmTerm?: T;
+  channel?: T;
+  country?: T;
+  countryCode?: T;
+  region?: T;
+  city?: T;
+  device?: T;
+  browser?: T;
+  os?: T;
+  isBot?: T;
+  botName?: T;
+  isBounce?: T;
+  durationMs?: T;
+  reachedCart?: T;
+  reachedCheckout?: T;
+  purchased?: T;
+  newsletter?: T;
+  conversionValue?: T;
+  ipHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -780,7 +885,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
- * Cuentas, pagos, envíos, avisos, captcha y correo SMTP.
+ * Cuentas, pagos, envíos, avisos, analítica, captcha y correo SMTP.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "store-settings".
@@ -811,7 +916,7 @@ export interface StoreSetting {
    */
   mpLabel?: string | null;
   /**
-   * Lo sacás en Tus integraciones → Credenciales. Producción: APP_USR-…  Pruebas: TEST-…  Si lo dejás vacío, se usa MERCADOPAGO_ACCESS_TOKEN del servidor.
+   * Tiene que ser de la cuenta de Kaprichos, no de otro proyecto. En developers.mercadopago.com creá una aplicación llamada Kaprichos y copiá el Access Token de producción (APP_USR-…). Si acá o en Vercel (MERCADOPAGO_ACCESS_TOKEN) queda el token de TicketsTransfer/Alquilalo, el checkout va a mostrar esa marca.
    */
   mpAccessToken?: string | null;
   /**
@@ -900,6 +1005,18 @@ export interface StoreSetting {
    * Si el stock total del producto (suma de variantes) pasa de estar por encima de este número a igual o menor, se envía el email.
    */
   lowStockThreshold?: number | null;
+  /**
+   * Mide sesiones, únicos, rebotes, campañas UTM y ubicación aproximada. Es analítica propia (no Google). No se guarda la IP, solo un hash.
+   */
+  analyticsEnabled?: boolean | null;
+  /**
+   * Sirve para ver qué arañas recorren el catálogo. No cuentan como visitas humanas.
+   */
+  analyticsTrackBots?: boolean | null;
+  /**
+   * Las sesiones más viejas se borran solas para no llenar el plan free de Supabase (500 MB). 90 días alcanza para campañas de temporada.
+   */
+  analyticsRetentionDays?: number | null;
   fromName?: string | null;
   /**
    * Ej: noreply@kaprichos.com.ar
@@ -1028,6 +1145,9 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   notifyContact?: T;
   lowStockEnabled?: T;
   lowStockThreshold?: T;
+  analyticsEnabled?: T;
+  analyticsTrackBots?: T;
+  analyticsRetentionDays?: T;
   fromName?: T;
   fromAddress?: T;
   smtpHost?: T;

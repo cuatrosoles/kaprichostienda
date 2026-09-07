@@ -115,4 +115,46 @@ Después del primer deploy, si la URL no era la definitiva, actualizá `NEXT_PUB
 | `npm run dev` | Desarrollo |
 | `npm run build` | Build de producción |
 | `npm run generate:types` | Tipos de Payload |
-| `npm run push-schema` | Crea/actualiza tablas en Supabase (hace falta después de agregar colecciones o globals, p. ej. Hero) |
+| `npm run push-schema` | Crea/actualiza tablas en Supabase (hace falta después de agregar colecciones o globals, p. ej. Hero o Analítica) |
+
+---
+
+## 4. Analítica de visitas (panel Admin)
+
+La tienda registra visitas **propias** (no Google Analytics): sesiones, únicos, rebotes, bots/indexadores, dispositivo, campañas UTM y ubicación aproximada. Se ve en `/admin/analitica`.
+
+### Qué tenés que hacer vos
+
+1. En local, con `.env.local` apuntando a Supabase, corré:
+
+```bash
+npm run push-schema
+```
+
+Eso crea la tabla de sesiones. **Sin este paso el panel queda vacío o falla al guardar visitas.**
+
+2. Subí el código y desplegá en Vercel (las variables de entorno actuales alcanzan: **no hace falta ninguna clave nueva**).
+
+3. Opcional: en `/admin` → **Ajustes generales** → pestaña **Analítica** confirmá que esté activo el registro y cuántos días se conservan (90 por defecto, para no llenar los 500 MB del plan free).
+
+4. Si endureciste Supabase con `npm run enable-rls`, volvé a correrlo después del `push-schema` para cubrir la tabla nueva.
+
+### Campañas de marketing
+
+A cada enlace de Instagram, WhatsApp, Meta Ads o Google agregale UTM. Ejemplos:
+
+```text
+https://tudominio.com/?utm_source=instagram&utm_medium=social&utm_campaign=otono2026
+https://tudominio.com/productos?utm_source=meta&utm_medium=cpc&utm_campaign=remeras-mujer
+https://tudominio.com/?utm_source=whatsapp&utm_medium=social&utm_campaign=clientes
+```
+
+En el panel vas a poder comparar fuente, medio, campaña, rebote y compras, y exportar CSV.
+
+### Ubicación
+
+En **Vercel** la ciudad/provincia/país salen de los encabezados de la plataforma (aproximados, no GPS). En local suele verse vacío salvo que haya una consulta de respaldo a ipapi.co.
+
+### Privacidad
+
+No se guarda la IP, solo un hash. No se envía nada a Google ni Meta. El aviso de cookies de la tienda menciona esta medición.

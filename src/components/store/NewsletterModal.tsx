@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import { trackStoreEvent } from '@/lib/analytics/client'
 
 export default function NewsletterModal() {
   const [open, setOpen] = useState(false)
@@ -30,6 +31,7 @@ export default function NewsletterModal() {
       }),
     })
     setSent(true)
+    trackStoreEvent('newsletter', { path: window.location.pathname || '/' })
   }
 
   if (!open) return null

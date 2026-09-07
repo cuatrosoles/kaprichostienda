@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { type CatalogProduct, type ProductVariant } from '@/data/catalog'
+import { trackStoreEvent } from '@/lib/analytics/client'
 
 export type CartItem = {
   productId: string
@@ -77,6 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       ]
     })
     setIsOpen(true)
+    trackStoreEvent('cart', { path: `/productos/${product.slug}` })
   }
 
   const updateQty = (sku: string, quantity: number) => {

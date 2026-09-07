@@ -1,4 +1,8 @@
 export function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return
-  process.noDeprecation = true
+  try {
+    process.noDeprecation = true
+  } catch {
+    /* en algunos runtimes process.noDeprecation es de solo lectura */
+  }
 }

@@ -14,6 +14,7 @@ import { Orders } from './collections/Orders'
 import { Categories } from './collections/Categories'
 import { Coupons } from './collections/Coupons'
 import { Customers } from './collections/Customers'
+import { VisitSessions } from './collections/VisitSessions'
 import { StoreSettings } from './globals/StoreSettings'
 import { HomeHero } from './globals/HomeHero'
 import { storeEmailAdapter } from './email/storeEmailAdapter'
@@ -101,9 +102,22 @@ export default buildConfig({
       },
       providers: ['/graphics/AdminDefaults'],
       beforeNav: ['/graphics/NavBrand'],
+      afterNavLinks: ['/components/admin/AnalyticsNavLink'],
+      beforeDashboard: ['/components/admin/AnalyticsWidget'],
+      views: {
+        analitica: {
+          Component: '/components/admin/AnalyticsView',
+          path: '/analitica',
+          exact: true,
+          meta: {
+            title: 'Analítica',
+            description: 'Visitas, campañas UTM, ubicación y bots de la tienda.',
+          },
+        },
+      },
     },
   },
-  collections: [Users, Media, Categories, Products, Orders, Coupons, Customers],
+  collections: [Users, Media, Categories, Products, Orders, Coupons, Customers, VisitSessions],
   globals: [StoreSettings, HomeHero],
   i18n: {
     fallbackLanguage: 'es',

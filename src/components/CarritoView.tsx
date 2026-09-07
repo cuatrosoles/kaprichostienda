@@ -8,6 +8,7 @@ import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
 import type { PostalLocation } from '@/lib/postalCode'
 import CatalogImage from '@/components/store/CatalogImage'
 import { isFreeFulfillment, STORE_PICKUP_ID } from '@/lib/fulfillment'
+import { trackStoreEvent } from '@/lib/analytics/client'
 
 type ShippingOption = { id: string; name: string; cost: number; eta: string }
 
@@ -143,6 +144,7 @@ export default function CarritoView() {
       return alert('Calculá el envío con tu código postal')
     }
     setIsProcessingCheckout(true)
+    trackStoreEvent('checkout', { path: '/carrito', value: grandTotal })
     try {
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -181,6 +183,7 @@ export default function CarritoView() {
       }
       if (data.ok) {
         clear()
+        trackStoreEvent('purchase', { path: '/carrito', value: grandTotal })
         setTransferInfo(
           data.transfer || {
             bank: commerce.transferBank,
