@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, useTransition } from 'react'
+import Link from 'next/link'
 import type { AnalyticsRange, AnalyticsStats } from '@/lib/analytics/stats'
 
 const RANGES: { key: AnalyticsRange; label: string }[] = [
@@ -317,7 +318,7 @@ export default function AnalyticsDashboard({ initial }: { initial: AnalyticsStat
       <section className="kap-analytics__card">
         <div className="kap-analytics__card-head">
           <h2>Sesiones recientes</h2>
-          <a href="/admin/collections/visit-sessions">Ver listado completo</a>
+          <Link href="/admin/collections/visit-sessions">Ver listado completo</Link>
         </div>
         <div className="kap-analytics__table-wrap">
           <table className="kap-analytics__table">
