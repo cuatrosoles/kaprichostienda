@@ -44,6 +44,33 @@ select {
   @apply inline-flex w-full items-center justify-center bg-black px-6 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-neutral-800 disabled:bg-neutral-400;
 }
 
+.product-qty {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  border: 1px solid #d6d3d1;
+  min-width: 7.25rem;
+}
+
+.product-qty button {
+  width: 2.4rem;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.product-qty button:disabled {
+  color: #a3a3a3;
+}
+
+.product-qty span {
+  display: flex;
+  min-width: 1.5rem;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+}
+
 .store-btn-outline {
   @apply inline-flex items-center justify-center border border-black px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] text-black transition hover:bg-black hover:text-white;
 }
@@ -112,7 +139,11 @@ select {
 
 .product-share {
   display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #0b0b0b;
+  cursor: pointer;
 }
 
 .product-share svg {

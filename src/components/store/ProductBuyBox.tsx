@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { formatARS, type CatalogProduct, type ProductVariant } from '@/data/catalog'
 import { sizesMatch, variantsForColor } from '@/lib/productMeta'
+import { prepareInstagramShare, shareProductOnInstagram } from '@/lib/instagramShare'
 import { productSharePhrase } from '@/lib/productShare'
 import { useCart } from '@/context/CartContext'
 import { useCashDiscountRate, useCommerce } from '@/context/CommerceContext'
@@ -50,10 +51,23 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
   const activeSize = availableSize || sizes.find((row) => row.stock > 0)?.size || sizes[0]?.size || ''
   const variant = sizes.find((row) => row.size === activeSize) || sizes[0]
   const left = variant ? unitsLeft(variant, items) : 0
+  const [qty, setQty] = useState(1)
+  const quantity = left > 0 ? Math.min(Math.max(1, qty), left) : 1
   const [shareLinks, setShareLinks] = useState<ReturnType<typeof productShareLinks> | null>(null)
   useEffect(() => {
     setShareLinks(productShareLinks(product))
   }, [product])
+  useEffect(() => {
+    if (!shareLinks) return
+    void prepareInstagramShare({
+      image: activeImage || product.image,
+      phrase: shareLinks.phrase,
+      pageUrl: shareLinks.pageUrl,
+    })
+  }, [shareLinks, activeImage, product.image])
+  useEffect(() => {
+    setQty(1)
+  }, [activeColor, activeSize])
   const commerce = useCommerce()
   const cashRate = useCashDiscountRate()
   const cashPrice = Math.round(product.price * (1 - cashRate))
@@ -167,14 +181,39 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
           </div>
         ) : null}
 
-        <button
-          type="button"
-          className="store-btn mt-8"
-          disabled={!variant || left <= 0}
-          onClick={() => variant && left > 0 && addItem(product, variant)}
-        >
-          Agregar al carrito
-        </button>
+        <div className="mt-8 flex items-stretch gap-3">
+          <div className="product-qty">
+            <button
+              type="button"
+              aria-label="Disminuir cantidad"
+              disabled={!variant || left <= 0 || quantity <= 1}
+              onClick={() => setQty((current) => Math.max(1, current - 1))}
+            >
+              −
+            </button>
+            <span aria-live="polite">{quantity}</span>
+            <button
+              type="button"
+              aria-label="Aumentar cantidad"
+              disabled={!variant || quantity >= left}
+              onClick={() => setQty((current) => Math.min(left, current + 1))}
+            >
+              +
+            </button>
+          </div>
+          <button
+            type="button"
+            className="store-btn min-w-0 flex-1"
+            disabled={!variant || left <= 0}
+            onClick={() => {
+              if (!variant || left <= 0) return
+              addItem(product, variant, quantity)
+              setQty(1)
+            }}
+          >
+            Agregar al carrito
+          </button>
+        </div>
         <p className="mt-4">
           <Link href="/productos" className="text-xs uppercase tracking-nav underline">
             Volver al catálogo
@@ -203,21 +242,18 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
                 />
               </svg>
             </a>
-            <a
-              href="https://www.instagram.com/"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
               aria-label="Compartir en Instagram"
               className="product-share"
-              onClick={async (event) => {
-                event.preventDefault()
+              onClick={() => {
                 const links = shareLinks || productShareLinks(product)
-                try {
-                  await navigator.clipboard.writeText(links.message)
-                } catch {
-                  /* Instagram se abre igual; el portapapeles puede estar bloqueado */
-                }
-                window.open('https://www.instagram.com/', '_blank', 'noopener,noreferrer')
+                void shareProductOnInstagram({
+                  image: activeImage || product.image,
+                  phrase: links.phrase,
+                  pageUrl: links.pageUrl,
+                  message: links.message,
+                })
               }}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -226,7 +262,7 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
                   d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5zm8 1.8H8A3.2 3.2 0 0 0 4.8 8v8A3.2 3.2 0 0 0 8 19.2h8a3.2 3.2 0 0 0 3.2-3.2V8A3.2 3.2 0 0 0 16 4.8zM12 8.2A3.8 3.8 0 1 1 8.2 12 3.8 3.8 0 0 1 12 8.2zm0 1.6A2.2 2.2 0 1 0 14.2 12 2.2 2.2 0 0 0 12 9.8zM17.35 6.4a1 1 0 1 1-1 1 1 1 0 0 1 1-1z"
                 />
               </svg>
-            </a>
+            </button>
           </div>
         </div>
       </div>
