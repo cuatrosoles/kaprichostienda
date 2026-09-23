@@ -5,7 +5,7 @@ import type { Category, Coupon, Media, Product } from '@/payload-types'
 import type { CatalogCategory, CatalogCoupon, CatalogProduct, HeroView, ProductVariant } from '@/data/catalog'
 import { DEFAULT_HERO } from '@/data/catalog'
 import { SEED_PRODUCT_SLUGS } from '@/data/seed-catalog'
-import { productSizeGuide } from '@/lib/productMeta'
+import { expandVariants, productSizeGuide } from '@/lib/productMeta'
 import { withPayload } from '@/lib/payload'
 
 function isDummyStoreAsset(url?: string | null): boolean {
@@ -55,13 +55,7 @@ export function mapProduct(doc: Product): CatalogProduct {
     .slice(0, 4)
   const image = publicAssetUrl(mainUpload || gallery[0])
   const images = [image, ...gallery.map(publicAssetUrl).filter((url) => url && url !== image)].filter(Boolean)
-  const variants: ProductVariant[] = (doc.variants || []).map((v) => ({
-    sku: v.sku || '',
-    size: v.size,
-    color: v.color,
-    colorHex: v.colorHex || '#111111',
-    stock: Number(v.stock ?? 0),
-  }))
+  const variants: ProductVariant[] = expandVariants(doc.variants)
 
   return {
     id: String(doc.id),

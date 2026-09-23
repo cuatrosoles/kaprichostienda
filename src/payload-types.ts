@@ -319,12 +319,18 @@ export interface Product {
    * Lo usa el cálculo de envío. No se muestra en la ficha. El peso visible es el campo Peso de Medidas y detalle.
    */
   weight: number;
+  /**
+   * Una fila por color y talle. En la ficha, al elegir un color se ven solo los talles de ese color. Si escribís varios talles en la misma fila (36-38-40-46), se muestran como botones separados y comparten el stock. Para una cantidad distinta en cada talle, cargá una fila por talle.
+   */
   variants?:
     | {
         /**
          * Se completa solo al guardar: SKU del producto + 1, 2, 3…
          */
         sku?: string | null;
+        /**
+         * Un talle (36, M, T4) o varios separados (36-38-40-46).
+         */
         size: string;
         /**
          * Ej: Negro, Rojo, Crudo

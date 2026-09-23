@@ -4,6 +4,8 @@ export type ProductVariant = {
   color: string
   colorHex: string
   stock: number
+  /** Fila real de stock. Varios talles escritos juntos comparten este identificador. */
+  stockSku: string
 }
 
 export type SizeGuideColumn = {
@@ -112,7 +114,13 @@ export const POINTS_PER_THOUSAND = 1
 export const POINT_VALUE_ARS = 10
 
 export function productStock(product: CatalogProduct) {
-  return product.variants.reduce((acc, v) => acc + v.stock, 0)
+  const seen = new Set<string>()
+  return product.variants.reduce((acc, variant) => {
+    const pool = variant.stockSku || variant.sku
+    if (!pool || seen.has(pool)) return acc
+    seen.add(pool)
+    return acc + variant.stock
+  }, 0)
 }
 
 export function filterProducts(

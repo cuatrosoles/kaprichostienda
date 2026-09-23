@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import type { Order } from '@/payload-types'
 import { getStoreSettings } from '@/lib/auth'
+import { variantStockSku } from '@/lib/productMeta'
 import { mpAccessToken } from '@/lib/storeCommerce'
 
 const MP_API = 'https://api.mercadopago.com'
@@ -176,8 +177,9 @@ export async function applyPaymentStatus(args: {
           req,
         })
 
+        const pool = variantStockSku(String(item.variantSku || ''))
         const nextVariants = (product.variants || []).map((variant) =>
-          item.variantSku && variant.sku === item.variantSku
+          pool && variant.sku === pool
             ? { ...variant, stock: Math.max(0, Number(variant.stock ?? 0) - quantity) }
             : variant,
         )

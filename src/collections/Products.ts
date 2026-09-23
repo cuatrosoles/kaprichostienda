@@ -241,6 +241,10 @@ export const Products: CollectionConfig = {
       type: 'array',
       labels: { singular: 'Variante', plural: 'Variantes' },
       label: 'Variantes (talle y color)',
+      admin: {
+        description:
+          'Una fila por color y talle. En la ficha, al elegir un color se ven solo los talles de ese color. Si escribís varios talles en la misma fila (36-38-40-46), se muestran como botones separados y comparten el stock. Para una cantidad distinta en cada talle, cargá una fila por talle.',
+      },
       fields: [
         {
           name: 'sku',
@@ -251,7 +255,15 @@ export const Products: CollectionConfig = {
             description: 'Se completa solo al guardar: SKU del producto + 1, 2, 3…',
           },
         },
-        { name: 'size', type: 'text', required: true, label: 'Talle' },
+        {
+          name: 'size',
+          type: 'text',
+          required: true,
+          label: 'Talle',
+          admin: {
+            description: 'Un talle (36, M, T4) o varios separados (36-38-40-46).',
+          },
+        },
         {
           name: 'color',
           type: 'text',

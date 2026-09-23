@@ -15,6 +15,8 @@ export type CartItem = {
   sku: string
   size: string
   color: string
+  stockSku?: string
+  stock?: number
 }
 
 type CartContextValue = {
@@ -54,11 +56,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, hydrated])
 
   const addItem = (product: CatalogProduct, variant: ProductVariant, quantity = 1) => {
+    const pool = variant.stockSku || variant.sku
     setItems((prev) => {
+      const used = prev.reduce((acc, row) => ((row.stockSku || row.sku) === pool ? acc + row.quantity : acc), 0)
+      const room = Math.max(0, variant.stock - used)
+      const add = Math.min(quantity, room)
+      if (add <= 0) return prev
       const existing = prev.find((i) => i.sku === variant.sku)
       if (existing) {
         return prev.map((i) =>
-          i.sku === variant.sku ? { ...i, quantity: i.quantity + quantity } : i,
+          i.sku === variant.sku ? { ...i, quantity: i.quantity + add, stock: variant.stock, stockSku: pool } : i,
         )
       }
       return [
@@ -68,23 +75,36 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           slug: product.slug,
           title: product.title,
           price: product.price,
-          quantity,
+          quantity: add,
           weight: product.weight,
           image: product.image,
           sku: variant.sku,
           size: variant.size,
           color: variant.color,
+          stock: variant.stock,
+          stockSku: pool,
         },
       ]
     })
+    if (variant.stock <= 0) return
     setIsOpen(true)
     trackStoreEvent('cart', { path: `/productos/${product.slug}` })
   }
 
   const updateQty = (sku: string, quantity: number) => {
-    setItems((prev) =>
-      quantity <= 0 ? prev.filter((i) => i.sku !== sku) : prev.map((i) => (i.sku === sku ? { ...i, quantity } : i)),
-    )
+    setItems((prev) => {
+      if (quantity <= 0) return prev.filter((i) => i.sku !== sku)
+      return prev.map((item) => {
+        if (item.sku !== sku) return item
+        const pool = item.stockSku || item.sku
+        const others = prev.reduce((acc, row) => {
+          if (row.sku === sku || (row.stockSku || row.sku) !== pool) return acc
+          return acc + row.quantity
+        }, 0)
+        const cap = typeof item.stock === 'number' ? Math.max(0, item.stock - others) : quantity
+        return { ...item, quantity: Math.min(quantity, cap) }
+      })
+    })
   }
 
   const removeItem = (sku: string) => setItems((prev) => prev.filter((i) => i.sku !== sku))

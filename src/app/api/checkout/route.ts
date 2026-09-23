@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       payMethod = 'mp',
     } = await req.json()
 
-    const validatedItems = []
+    const pending = []
     for (const item of items as CheckoutItem[]) {
       const doc = await findStoreProductDoc(item.productId)
       if (!doc || doc.status !== 'published') throw new Error('Producto no encontrado')
@@ -46,21 +46,32 @@ export async function POST(req: Request) {
       const variant = item.variantSku
         ? prod.variants.find((v) => v.sku === item.variantSku)
         : prod.variants[0]
-      if (!variant || variant.stock < item.quantity) {
-        throw new Error(`Stock insuficiente para ${prod.title}`)
-      }
-      validatedItems.push({
-        id: prod.id,
-        title: `${prod.title} (${variant.color} / ${variant.size})`,
-        quantity: item.quantity,
-        unit_price: prod.price,
-        currency_id: 'ARS' as const,
-        variant,
-        product: prod,
-        size: variant.size,
-        color: variant.color,
-      })
+      if (!variant) throw new Error(`Stock insuficiente para ${prod.title}`)
+      pending.push({ item, prod, variant })
     }
+
+    const demand = new Map<string, { qty: number; stock: number; title: string }>()
+    for (const line of pending) {
+      const key = `${line.prod.id}:${line.variant.stockSku || line.variant.sku}`
+      const current = demand.get(key) || { qty: 0, stock: line.variant.stock, title: line.prod.title }
+      current.qty += Number(line.item.quantity) || 0
+      demand.set(key, current)
+    }
+    for (const row of demand.values()) {
+      if (row.qty > row.stock) throw new Error(`Stock insuficiente para ${row.title}`)
+    }
+
+    const validatedItems = pending.map(({ item, prod, variant }) => ({
+      id: prod.id,
+      title: `${prod.title} (${variant.color} / ${variant.size})`,
+      quantity: item.quantity,
+      unit_price: prod.price,
+      currency_id: 'ARS' as const,
+      variant,
+      product: prod,
+      size: variant.size,
+      color: variant.color,
+    }))
 
     const productsTotal = validatedItems.reduce(
       (acc, curr) => acc + curr.unit_price * curr.quantity,

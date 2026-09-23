@@ -55,6 +55,115 @@ export function sizesMatch(a: unknown, b: unknown) {
   return Boolean(left && right && left === right)
 }
 
+const LETTER_SIZES = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl', '2xl', '3xl', '4xl', '5xl']
+
+function sizeToken(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/^talle\s+/i, '')
+    .trim()
+}
+
+function isSizeToken(value: string) {
+  const token = sizeToken(value)
+  return /^(?:t\d{1,2}|\d{1,3}|xxs|xs|s|m|l|xl|xxl|xxxl|[2-5]xl|u|unico)$/.test(token)
+}
+
+function displaySizeToken(value: string) {
+  return value.replace(/^talle\s+/i, '').trim()
+}
+
+/** Separa "Talle 36-38-40-46" o "S, M, L" en talles individuales. Un texto que no es lista queda igual. */
+export function splitSizeLabel(value: unknown): string[] {
+  const raw = String(value ?? '').trim()
+  if (!raw) return []
+  const body = raw.replace(/^talles?\s+/i, '').trim()
+  const source = body || raw
+  const separated = source
+    .split(/\s*(?:,|\/|\s+y\s+|\s+e\s+|–|—|-)\s*/i)
+    .map((part) => part.trim())
+    .filter(Boolean)
+
+  if (separated.length > 1 && separated.every(isSizeToken)) return separated.map(displaySizeToken)
+
+  const words = source.split(/\s+/).filter(Boolean)
+  if (words.length > 1 && words.every(isSizeToken)) return words.map(displaySizeToken)
+  if (isSizeToken(source)) return [displaySizeToken(source)]
+  return [raw]
+}
+
+export function compareSizes(a: string, b: string) {
+  const rank = (value: string) => {
+    const token = normalizeSizeLabel(value).replace(/\s+/g, '')
+    const letter = LETTER_SIZES.indexOf(token)
+    if (letter >= 0) return letter
+    const numeric = Number(token.replace(/^t/, ''))
+    if (token && Number.isFinite(numeric)) return 100 + numeric
+    return 1000
+  }
+  const diff = rank(a) - rank(b)
+  if (diff !== 0) return diff
+  return a.localeCompare(b, 'es')
+}
+
+export function variantStockSku(sku: string) {
+  const marker = sku.lastIndexOf('::')
+  return marker > 0 ? sku.slice(0, marker) : sku
+}
+
+type StoredVariant = {
+  sku?: string | null
+  size?: string | null
+  color?: string | null
+  colorHex?: string | null
+  stock?: number | null
+}
+
+export type StoreVariant = {
+  sku: string
+  size: string
+  color: string
+  colorHex: string
+  stock: number
+  stockSku: string
+}
+
+/** Un talle escrito como lista se vuelve un botón por talle. El stock sigue siendo el de la fila original. */
+export function expandVariants(variants: StoredVariant[] | null | undefined): StoreVariant[] {
+  const rows: StoreVariant[] = []
+  ;(variants || []).forEach((variant, index) => {
+    const labels = splitSizeLabel(variant.size)
+    const sizes = labels.length ? labels : [String(variant.size || '').trim() || 'Único']
+    const stockSku = String(variant.sku || '').trim() || `var-${index + 1}`
+    sizes.forEach((size, sizeIndex) => {
+      const sku = sizes.length === 1 || sizeIndex === 0 ? stockSku : `${stockSku}::${normalizeSizeLabel(size)}`
+      rows.push({
+        sku,
+        size,
+        color: String(variant.color || '').trim(),
+        colorHex: variant.colorHex || '#111111',
+        stock: Number(variant.stock ?? 0),
+        stockSku,
+      })
+    })
+  })
+  return rows
+}
+
+export function variantsForColor(variants: StoreVariant[], color: string) {
+  const wanted = color.trim()
+  const bySize = new Map<string, StoreVariant>()
+  for (const variant of variants) {
+    if (variant.color !== wanted) continue
+    const key = normalizeSizeLabel(variant.size)
+    const previous = bySize.get(key)
+    if (!previous || variant.stock > previous.stock) bySize.set(key, variant)
+  }
+  return [...bySize.values()].sort((a, b) => compareSizes(a.size, b.size))
+}
+
 function cellsFromSource(source: Record<string, unknown>) {
   const cells: Record<string, string> = {}
   for (const { key } of SIZE_MEASURE_FIELDS) {
