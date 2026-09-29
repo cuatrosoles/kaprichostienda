@@ -934,6 +934,9 @@ export interface StoreSetting {
    */
   paymentsWebhookUrl?: string | null;
   transferEnabled?: boolean | null;
+  /**
+   * Si ponés 0, no se muestra el precio en rojo en la ficha ni en el catálogo, y el carrito no resta un descuento.
+   */
   cashDiscountPercent?: number | null;
   /**
    * Si lo dejás vacío, se arma solo con el porcentaje de descuento.
@@ -999,6 +1002,18 @@ export interface StoreSetting {
    */
   shippingApiKey?: string | null;
   shippingApiTimeout?: number | null;
+  /**
+   * Frases en blanco sobre fondo negro, arriba de toda la tienda. Se rotan solas. Agregá, editá, arrastrá para ordenar o borrá. Si no queda ninguno, la barra no se muestra.
+   */
+  announcements?:
+    | {
+        /**
+         * Ej: Envíos a todo el país
+         */
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Ahí llegan ventas, registros, mensajes de contacto y alertas de stock bajo.
    */
@@ -1145,6 +1160,12 @@ export interface StoreSettingsSelect<T extends boolean = true> {
   shippingApiUrl?: T;
   shippingApiKey?: T;
   shippingApiTimeout?: T;
+  announcements?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
   adminEmail?: T;
   notifySales?: T;
   notifyRegistrations?: T;

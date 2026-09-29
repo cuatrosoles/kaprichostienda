@@ -24,7 +24,7 @@ export default function ProductCard({ product }: { product: CatalogProduct }) {
           {product.title}
         </Link>
         <p className="mt-1 text-sm">{formatARS(product.price)}</p>
-        {commerce.transferEnabled ? (
+        {commerce.transferEnabled && commerce.cashDiscountPercent > 0 ? (
           <p className="text-xs font-semibold text-red-600">
             {commerce.cashDiscountPercent}% OFF {formatARS(cashPrice)} efectivo / transferencia
           </p>

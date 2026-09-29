@@ -2,23 +2,23 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { ANNOUNCEMENTS } from '@/data/catalog'
 import { useCommerce } from '@/context/CommerceContext'
 
 export default function AnnouncementBar() {
   const commerce = useCommerce()
   const [index, setIndex] = useState(0)
-  const messages = ANNOUNCEMENTS.map((text) =>
-    text.includes('20% OFF') && commerce.transferEnabled
-      ? `${commerce.cashDiscountPercent}% OFF pagando con transferencia`
-      : text,
-  ).filter((text) => commerce.transferEnabled || !text.includes('transferencia'))
+  const messages = commerce.announcements.filter(
+    (text) => commerce.transferEnabled || !text.toLowerCase().includes('transferencia'),
+  )
+  const safeIndex = messages.length ? index % messages.length : 0
 
   useEffect(() => {
-    if (!messages.length) return
+    if (messages.length < 2) return
     const id = setInterval(() => setIndex((i) => (i + 1) % messages.length), 4000)
     return () => clearInterval(id)
   }, [messages.length])
+
+  if (!messages.length) return null
 
   return (
     <div className="bg-[#2a2a2a] text-white">
@@ -32,7 +32,7 @@ export default function AnnouncementBar() {
           ‹
         </button>
         <Link href="/productos" className="min-h-[1.2em] text-center">
-          {messages[index]}
+          {messages[safeIndex]}
         </Link>
         <button
           type="button"

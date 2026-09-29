@@ -430,7 +430,7 @@ export default function CarritoView() {
             <span>Subtotal</span>
             <span>{formatARS(subtotal)}</span>
           </div>
-          {payMethod === 'transfer' && (
+          {payMethod === 'transfer' && commerce.cashDiscountPercent > 0 && (
             <div className="flex justify-between text-red-600">
               <span>{commerce.cashDiscountPercent}% OFF</span>
               <span>-{formatARS(subtotal - discountedSubtotal)}</span>

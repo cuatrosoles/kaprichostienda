@@ -1,11 +1,13 @@
 'use client'
 
 import { createContext, useContext, type ReactNode } from 'react'
+import { ANNOUNCEMENTS } from '@/data/catalog'
 import type { PublicCommerce } from '@/lib/storeCommerce'
 import { localFulfillmentOptions } from '@/lib/fulfillment'
 
 export const FALLBACK_COMMERCE: PublicCommerce = {
   cashDiscountPercent: 20,
+  announcements: [...ANNOUNCEMENTS],
   mpEnabled: true,
   transferEnabled: true,
   mpLabel: 'Mercado Pago · 3 cuotas sin interés',

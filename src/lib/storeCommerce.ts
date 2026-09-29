@@ -1,8 +1,10 @@
 import type { StoreSetting } from '@/payload-types'
+import { ANNOUNCEMENTS } from '@/data/catalog'
 import { localFulfillmentOptions, type FulfillmentOption } from '@/lib/fulfillment'
 
 export type PublicCommerce = {
   cashDiscountPercent: number
+  announcements: string[]
   mpEnabled: boolean
   transferEnabled: boolean
   mpLabel: string
@@ -54,16 +56,24 @@ export function paymentsWebhookBase(settings?: StoreSetting | null) {
   )
 }
 
+export function announcementTexts(settings?: StoreSetting | null) {
+  const rows = settings?.announcements
+  if (!Array.isArray(rows)) return [...ANNOUNCEMENTS]
+  return rows.map((row) => String(row?.text || '').trim()).filter(Boolean)
+}
+
 export function getPublicCommerce(settings?: StoreSetting | null): PublicCommerce {
   const percent = cashDiscountPercent(settings)
+  const transferLabel =
+    String(settings?.transferLabel || '').trim() ||
+    (percent > 0 ? `${DEFAULT_TRANSFER_LABEL} · ${percent}% OFF` : DEFAULT_TRANSFER_LABEL)
   return {
     cashDiscountPercent: percent,
+    announcements: announcementTexts(settings),
     mpEnabled: settings?.mpEnabled !== false,
     transferEnabled: settings?.transferEnabled !== false,
     mpLabel: String(settings?.mpLabel || DEFAULT_MP_LABEL).trim() || DEFAULT_MP_LABEL,
-    transferLabel:
-      String(settings?.transferLabel || `${DEFAULT_TRANSFER_LABEL} · ${percent}% OFF`).trim() ||
-      `${DEFAULT_TRANSFER_LABEL} · ${percent}% OFF`,
+    transferLabel,
     transferBank: String(settings?.transferBank || '').trim(),
     transferHolder: String(settings?.transferHolder || '').trim(),
     transferCbu: String(settings?.transferCbu || '').trim(),

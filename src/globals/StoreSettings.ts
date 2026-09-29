@@ -16,8 +16,12 @@ export const StoreSettings: GlobalConfig = {
   hooks: {
     afterChange: [
       async () => {
-        const { revalidateTag } = await import('next/cache')
-        revalidateTag('store-settings')
+        try {
+          const { revalidateTag } = await import('next/cache')
+          revalidateTag('store-settings')
+        } catch {
+          /* un script fuera de Next no tiene la caché de la tienda */
+        }
       },
     ],
   },
@@ -182,6 +186,8 @@ export const StoreSettings: GlobalConfig = {
                   max: 90,
                   label: 'Descuento por transferencia (%)',
                   admin: {
+                    description:
+                      'Si ponés 0, no se muestra el precio en rojo en la ficha ni en el catálogo, y el carrito no resta un descuento.',
                     condition: (_, sibling) => sibling?.transferEnabled !== false,
                   },
                 },
@@ -450,6 +456,40 @@ export const StoreSettings: GlobalConfig = {
                   min: 2000,
                   max: 20000,
                   label: 'Tiempo máximo de espera (ms)',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Anuncios',
+          fields: [
+            {
+              name: 'announcements',
+              type: 'array',
+              labels: { singular: 'Anuncio', plural: 'Anuncios' },
+              label: 'Textos de la barra superior',
+              admin: {
+                description:
+                  'Frases en blanco sobre fondo negro, arriba de toda la tienda. Se rotan solas. Agregá, editá, arrastrá para ordenar o borrá. Si no queda ninguno, la barra no se muestra.',
+                initCollapsed: false,
+                components: {
+                  RowLabel: '/components/admin/AnnouncementRowLabel',
+                },
+              },
+              defaultValue: [
+                { text: 'Envíos a todo el país' },
+                { text: '3 cuotas sin interés' },
+                { text: '20% OFF pagando con transferencia' },
+                { text: 'Club Kaprichos: sumá puntos en cada compra' },
+              ],
+              fields: [
+                {
+                  name: 'text',
+                  type: 'text',
+                  required: true,
+                  label: 'Texto',
+                  admin: { description: 'Ej: Envíos a todo el país' },
                 },
               ],
             },

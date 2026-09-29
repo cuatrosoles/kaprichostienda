@@ -96,7 +96,7 @@ export default function ProductBuyBox({ product }: { product: CatalogProduct }) 
         <h1 className="mt-3 font-display text-4xl">{product.title}</h1>
         {product.sku && <p className="mt-1 text-xs uppercase tracking-widest text-neutral-500">SKU {product.sku}</p>}
         <p className="mt-3 text-xl">{formatARS(product.price)}</p>
-        {commerce.transferEnabled ? (
+        {commerce.transferEnabled && commerce.cashDiscountPercent > 0 ? (
           <p className="mt-1 text-sm font-semibold text-red-600">
             {commerce.cashDiscountPercent}% OFF {formatARS(cashPrice)} efectivo o transferencia
           </p>
