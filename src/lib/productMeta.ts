@@ -20,6 +20,9 @@ export const SIZE_MEASURE_FIELDS = [
   { key: 'hombro', label: 'Hombro' },
   { key: 'alto', label: 'Alto' },
   { key: 'sisa', label: 'Sisa' },
+  { key: 'cintura', label: 'Cintura' },
+  { key: 'cadera', label: 'Cadera' },
+  { key: 'tiro', label: 'Tiro' },
   { key: 'numero', label: 'Número' },
   { key: 'peso', label: 'Peso' },
 ] as const

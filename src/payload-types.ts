@@ -279,6 +279,9 @@ export interface Product {
         hombro?: string | null;
         alto?: string | null;
         sisa?: string | null;
+        cintura?: string | null;
+        cadera?: string | null;
+        tiro?: string | null;
         numero?: string | null;
         peso?: string | null;
         id?: string | null;
@@ -694,6 +697,9 @@ export interface ProductsSelect<T extends boolean = true> {
         hombro?: T;
         alto?: T;
         sisa?: T;
+        cintura?: T;
+        cadera?: T;
+        tiro?: T;
         numero?: T;
         peso?: T;
         id?: T;
